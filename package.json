@@ -1,0 +1,20 @@
+{
+  "name": "crawler-js",
+  "version": "0.0.1",
+  "description": "crawler js",
+  "main": "./bin/crawler.js",
+  "dependencies": {
+    "cheerio": "*",
+    "chrome-remote-interface": "*",
+    "async": "*",
+    "mysql": "*",
+    "moment": "*",
+    "request": "*",
+    "zmysql": "*",
+    "request-promise": "*"
+  },
+  "scripts": {
+    "start": "node ./bin/crawler.js"
+  },
+  "author": "zhs007"
+}
