@@ -11,7 +11,8 @@
     "moment": "*",
     "request": "*",
     "zmysql": "*",
-    "request-promise": "*"
+    "request-promise": "*",
+    "lighthouse": "*"
   },
   "scripts": {
     "start": "node ./bin/crawler.js"

@@ -1,16 +1,22 @@
 "use strict";
 
-require('./lib/allcrawler');
-let crawlerdef = require('./lib/crawlerdef');
+require('./lib/crawler_request');
+require('./lib/crawler_headlesschrome');
+
+require('./lib/da_cheerio');
+
+let basedef = require('./lib/basedef');
 let CrawlerMgr = require('./lib/crawlermgr');
 
-function newCrawler(crawlertype, options) {
-    return CrawlerMgr.singleton.newCrawler(crawlertype, options);
+//require('./lib/headlesschrome');
+
+async function startCrawler(crawlertype, datype, options) {
+    return CrawlerMgr.singleton.startCrawler(crawlertype, datype, options);
 }
 
-exports.newCrawler = newCrawler;
+exports.startCrawler = startCrawler;
 
-for (let ct in crawlerdef) {
-    exports[ct] = crawlerdef[ct];
+for (let ct in basedef) {
+    exports[ct] = basedef[ct];
 }
 
