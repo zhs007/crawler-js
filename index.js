@@ -15,13 +15,14 @@ let CrawlerMgr = require('./lib/crawlermgr');
 
 // options
 //      - uri: string
+//      - async func_analysis(crawler)
 //      - crawler_type
 //      - dataanalysis_type
 //      - storage_type
 //      - storage_cfg
 //      - storage_cfg for csv {filename}
 //      - storage_cfg for json {filename}
-//      - storage_cfg for sql {filename, funcLine(lineobj)}
+//      - storage_cfg for sql {filename, func_procline(lineobj)}
 
 //require('./lib/headlesschrome');
 
