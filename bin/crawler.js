@@ -1,10 +1,11 @@
 "use strict";
 
 let crawlerjs = require('../index');
+var iconv = require('iconv-lite');
 
 crawlerjs.startCrawler(crawlerjs.CRAWLERTYPE_REQUEST, crawlerjs.DATAANALYSIS_CHEERIO, {
     uri: 'http://fund.jrj.com.cn/family.shtml',
-    resolveWithFullResponse: false
+    autoencode: true
 }).then(crawler => {
     //console.log(crawler.da.data('[href]'));
 
@@ -14,7 +15,14 @@ crawlerjs.startCrawler(crawlerjs.CRAWLERTYPE_REQUEST, crawlerjs.DATAANALYSIS_CHE
     // }
 
     crawler.da.data('[href]').each((index, element) => {
-        console.log(element.attribs.href);
+        if (element.name == 'a' && element.attribs.href.indexOf('http://fund.jrj.com.cn/archives,') == 0) {
+            console.log(element.attribs.href);
+
+            //let curname = new Buffer(element.attribs.title);
+            console.log(element.attribs.title);
+            //console.log(curname);
+            //console.log(iconv.decode(curname, 'gbk'));
+        }
 
         return true;
     });

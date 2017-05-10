@@ -12,7 +12,8 @@
     "request": "*",
     "zmysql": "*",
     "request-promise": "*",
-    "lighthouse": "*"
+    "lighthouse": "*",
+    "iconv-lite": "*"
   },
   "scripts": {
     "start": "node ./bin/crawler.js"

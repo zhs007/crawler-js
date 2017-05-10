@@ -10,6 +10,10 @@ let CrawlerMgr = require('./lib/crawlermgr');
 
 //require('./lib/headlesschrome');
 
+// options
+//      - uri: string
+//      - auto_encoding: bool
+
 async function startCrawler(crawlertype, datype, options) {
     return CrawlerMgr.singleton.startCrawler(crawlertype, datype, options);
 }
