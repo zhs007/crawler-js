@@ -1,45 +1,76 @@
 "use strict";
 
 let {CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE} = require('../index');
-var iconv = require('iconv-lite');
-var util = require('util');
+let util = require('util');
 
-CrawlerMgr.singleton.startCrawler({
-    uri: 'http://fund.jrj.com.cn/family.shtml',
-    crawler_type: CRAWLER.REQUEST,
-    dataanalysis_type: DATAANALYSIS.CHEERIO,
-    storage_type: STORAGE.SQL,
-    storage_cfg: {filename: 'fund.sql', funcLine: ld => {
-        return util.format("insert into fundbase(name, code) values('%s', '%s');", ld.name, ld.fundcode);
-    }}
-}).then(crawler => {
-    //console.log(crawler.da.data('[href]'));
+class FundState {
+    constructor() {
+        this.arr = [];
+    }
 
-    // let arr = crawler.da.data('[href]');
-    // for (let ii = 0; ii < arr.length; ++ii) {
-    //     console.log(arr[ii].attr('href'));
-    // }
-
-    crawler.da.data('[href]').each((index, element) => {
-        if (element.name == 'a' && element.attribs.href.indexOf('http://fund.jrj.com.cn/archives,') == 0) {
-            console.log(element.attribs.href);
-
-            //let curname = new Buffer(element.attribs.title);
-            console.log(element.attribs.title);
-            //console.log(curname);
-            //console.log(iconv.decode(curname, 'gbk'));
-
-            let str0 = element.attribs.href.split(',');
-            let fundcode = str0[1].split('.')[0];
-
-            crawler.storage.pushData({name: element.attribs.title, url: element.attribs.href, fundcode: fundcode});
+    addState(s) {
+        if (this.arr.indexOf(s) < 0) {
+            this.arr.push(s);
         }
+    }
+};
 
-        return true;
-    });
+FundState.singleton = new FundState();
 
-    crawler.save();
-});
+class FundMsg {
+    constructor() {
+        this.map = {};
+    }
+
+    addFund(fund) {
+        this.map[fund.fundcode] = fund;
+    }
+};
+
+FundMsg.singleton = new FundMsg();
+
+// 主页面配置
+let totalfundOptions = {
+    // 主地址
+    uri: 'http://fund.jrj.com.cn/family.shtml',
+
+    // 爬虫类型
+    crawler_type: CRAWLER.REQUEST,
+
+    // 数据分析配置
+    dataanalysis_type: DATAANALYSIS.CHEERIO,
+
+    // 持久化配置
+    storage_type: STORAGE.SQL,
+    storage_cfg: {
+        filename: 'fund.sql',
+        funcLine: ld => {
+        return util.format("insert into fundbase(name, code) values('%s', '%s');", ld.name, ld.fundcode);
+    }},
+
+    // 分析数据
+    funcOnAnalysis: crawler => {
+        crawler.da.data('[href]').each((index, element) => {
+            if (element.name == 'a' && element.attribs.href.indexOf('http://fund.jrj.com.cn/archives,') == 0) {
+                console.log(element.attribs.href);
+                console.log(element.attribs.title);
+
+                let str0 = element.attribs.href.split(',');
+                let fundcode = str0[1].split('.')[0];
+
+                FundMsg.singleton.addFund({name: element.attribs.title, url: element.attribs.href, fundcode: fundcode});
+                //crawler.storage.pushData({name: element.attribs.title, url: element.attribs.href, fundcode: fundcode});
+            }
+
+            return true;
+        });
+
+        // crawler.save();
+    }
+};
+
+CrawlerMgr.singleton.startCrawler(totalfundOptions)
+    .then(totalfundOptions.funcOnAnalysis);
 
 
 
