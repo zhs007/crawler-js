@@ -1,11 +1,17 @@
 "use strict";
 
-let crawlerjs = require('../index');
+let {CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE} = require('../index');
 var iconv = require('iconv-lite');
+var util = require('util');
 
-crawlerjs.startCrawler(crawlerjs.CRAWLERTYPE_REQUEST, crawlerjs.DATAANALYSIS_CHEERIO, {
+CrawlerMgr.singleton.startCrawler({
     uri: 'http://fund.jrj.com.cn/family.shtml',
-    autoencode: true
+    crawler_type: CRAWLER.REQUEST,
+    dataanalysis_type: DATAANALYSIS.CHEERIO,
+    storage_type: STORAGE.SQL,
+    storage_cfg: {filename: 'fund.sql', funcLine: ld => {
+        return util.format("insert into fundbase(name, code) values('%s', '%s');", ld.name, ld.fundcode);
+    }}
 }).then(crawler => {
     //console.log(crawler.da.data('[href]'));
 
@@ -22,10 +28,17 @@ crawlerjs.startCrawler(crawlerjs.CRAWLERTYPE_REQUEST, crawlerjs.DATAANALYSIS_CHE
             console.log(element.attribs.title);
             //console.log(curname);
             //console.log(iconv.decode(curname, 'gbk'));
+
+            let str0 = element.attribs.href.split(',');
+            let fundcode = str0[1].split('.')[0];
+
+            crawler.storage.pushData({name: element.attribs.title, url: element.attribs.href, fundcode: fundcode});
         }
 
         return true;
     });
+
+    crawler.save();
 });
 
 
