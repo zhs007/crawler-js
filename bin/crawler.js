@@ -33,6 +33,7 @@ FundMsg.singleton = new FundMsg();
 let fundbaseOptions = {
     // 主地址
     uri: '',
+    force_encoding: 'gbk',
 
     // 爬虫类型
     crawler_type: CRAWLER.REQUEST,
@@ -50,20 +51,25 @@ let fundbaseOptions = {
 
     // 分析数据
     func_analysis: async crawler => {
-        // crawler.da.data('[href]').each((index, element) => {
-        //     if (element.name == 'a' && element.attribs.href.indexOf('http://fund.jrj.com.cn/archives,') == 0) {
-        //         //console.log(element.attribs.href);
-        //         //console.log(element.attribs.title);
-        //
-        //         let str0 = element.attribs.href.split(',');
-        //         let fundcode = str0[1].split('.')[0];
-        //
-        //         FundMsg.singleton.addFund({name: element.attribs.title, url: element.attribs.href, fundcode: fundcode});
-        //         //crawler.storage.pushData({name: element.attribs.title, url: element.attribs.href, fundcode: fundcode});
-        //     }
-        //
-        //     return true;
-        // });
+        let mh_title = crawler.da.data('h1.mh-title').text();
+        let titlearr0 = mh_title.split('（');
+        let titlearr1 = titlearr0[1].split('）');
+        let title = titlearr0[0];
+        let code = titlearr1[0];
+
+        let fsarr = [];
+        crawler.da.data('i.zt').each((index, element) => {
+            if (element.children.length > 0 && element.children[0].children.length > 0) {
+                fsarr.push(element.children[0].children[0].data);
+            }
+        });
+
+        for (let ii = 0; ii < fsarr.length; ++ii) {
+            FundState.singleton.addState(fsarr[ii]);
+        }
+
+        FundMsg.singleton.map[code].name = title;
+        FundMsg.singleton.map[code].fsarr = fsarr;
 
         return crawler;
     }
@@ -73,6 +79,7 @@ let fundbaseOptions = {
 let totalfundOptions = {
     // 主地址
     uri: 'http://fund.jrj.com.cn/family.shtml',
+    force_encoding: 'gbk',
 
     // 爬虫类型
     crawler_type: CRAWLER.REQUEST,
@@ -98,7 +105,7 @@ let totalfundOptions = {
                 let str0 = element.attribs.href.split(',');
                 let fundcode = str0[1].split('.')[0];
 
-                FundMsg.singleton.addFund({name: element.attribs.title, url: element.attribs.href, fundcode: fundcode});
+                FundMsg.singleton.addFund({name: element.attribs.title, url: element.attribs.href, fundcode: fundcode, fsarr: []});
 
                 let co = Object.assign({}, fundbaseOptions);
                 co.uri = element.attribs.href;
@@ -113,8 +120,6 @@ let totalfundOptions = {
     }
 };
 
-CrawlerMgr.singleton.processCrawlerNums = 4;
+CrawlerMgr.singleton.processCrawlerNums = 8;
+CrawlerMgr.singleton.processDelayTime = 0.3;
 CrawlerMgr.singleton.startCrawler(totalfundOptions);
-
-
-

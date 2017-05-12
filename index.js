@@ -9,12 +9,14 @@ require('./lib/storage');
 require('./lib/storage_csv');
 require('./lib/storage_json');
 require('./lib/storage_sql');
+require('./lib/storage_mysql');
 
 let {CRAWLER, DATAANALYSIS, STORAGE} = require('./lib/basedef');
 let CrawlerMgr = require('./lib/crawlermgr');
 
 // options
 //      - uri: string
+//      - force_encoding
 //      - async func_analysis(crawler)
 //      - crawler_type
 //      - dataanalysis_type
@@ -23,6 +25,7 @@ let CrawlerMgr = require('./lib/crawlermgr');
 //      - storage_cfg for csv {filename}
 //      - storage_cfg for json {filename}
 //      - storage_cfg for sql {filename, func_procline(lineobj)}
+//      - storage_cfg for mysql {func_procline(lineobj), mysqlcfg: {host, user, password, database}}
 
 //require('./lib/headlesschrome');
 
