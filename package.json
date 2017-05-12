@@ -6,14 +6,12 @@
   "dependencies": {
     "cheerio": "*",
     "chrome-remote-interface": "*",
-    "async": "*",
-    "mysql": "*",
     "moment": "*",
     "request": "*",
-    "zmysql": "*",
     "request-promise": "*",
     "lighthouse": "*",
-    "iconv-lite": "*"
+    "iconv-lite": "*",
+    "mysql2": "*"
   },
   "scripts": {
     "start": "node ./bin/crawler.js"
