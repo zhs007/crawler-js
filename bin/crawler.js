@@ -33,6 +33,7 @@ FundMsg.singleton = new FundMsg();
 let fundbaseOptions = {
     // 主地址
     uri: '',
+    timeout: 1500,
     force_encoding: 'gbk',
 
     // 爬虫类型
@@ -79,6 +80,7 @@ let fundbaseOptions = {
 let totalfundOptions = {
     // 主地址
     uri: 'http://fund.jrj.com.cn/family.shtml',
+    timeout: 1500,
     force_encoding: 'gbk',
 
     // 爬虫类型
