@@ -11,7 +11,9 @@
     "request-promise": "*",
     "lighthouse": "*",
     "iconv-lite": "*",
-    "mysql2": "*"
+    "mysql2": "*",
+    "heapdump": "*",
+    "memwatch-next": "*"
   },
   "scripts": {
     "start": "node ./bin/crawler.js"

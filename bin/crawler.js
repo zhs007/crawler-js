@@ -109,7 +109,7 @@ let totalfundOptions = {
 
                 let co = Object.assign({}, fundbaseOptions);
                 co.uri = element.attribs.href;
-                CrawlerMgr.singleton.startCrawler(co);
+                CrawlerMgr.singleton.addCrawler(co);
                 //crawler.storage.pushData({name: element.attribs.title, url: element.attribs.href, fundcode: fundcode});
             }
 
@@ -120,6 +120,10 @@ let totalfundOptions = {
     }
 };
 
+//CrawlerMgr.singleton.startHeapdump(10000);
+//CrawlerMgr.singleton.startMemWatch();
+
 CrawlerMgr.singleton.processCrawlerNums = 8;
 CrawlerMgr.singleton.processDelayTime = 0.3;
-CrawlerMgr.singleton.startCrawler(totalfundOptions);
+CrawlerMgr.singleton.addCrawler(totalfundOptions);
+CrawlerMgr.singleton.start(true, true);
