@@ -5,7 +5,7 @@ let util = require('util');
 let fs = require('fs');
 let mysql = require('mysql2/promise');
 
-const mysqlcfg = JSON.parse(fs.readFileSync('./mysqlcfg.json').toString());
+const mysqlcfg = JSON.parse(fs.readFileSync('./mysqlcfg_holdemtech.json').toString());
 
 class RecordMgr {
     constructor() {

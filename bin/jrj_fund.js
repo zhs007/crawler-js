@@ -2,6 +2,10 @@
 
 let {CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE} = require('../index');
 let util = require('util');
+let fs = require('fs');
+let mysql = require('mysql2/promise');
+
+const mysqlcfg = JSON.parse(fs.readFileSync('./mysqlcfg_hfdb.json').toString());
 
 class FundState {
     constructor() {
@@ -13,21 +17,41 @@ class FundState {
             this.arr.push(s);
         }
     }
+
+    output() {
+        for (let ii = 0; ii < this.arr.length; ++ii) {
+            console.log(this.arr[ii]);
+        }
+    }
 };
 
 FundState.singleton = new FundState();
 
-class FundMsg {
+class FundMgr {
     constructor() {
         this.map = {};
+        this.conn = undefined;
+    }
+
+    async init(mysqlcfg) {
+        this.conn = await mysql.createConnection(mysqlcfg);
     }
 
     addFund(fund) {
         this.map[fund.fundcode] = fund;
     }
+
+    async saveFundBase() {
+        for (let key in this.map) {
+            let curfund = this.map[key];
+            let str = util.format("insert into fundbase(name, code, type0, type1, type2) values('%s', '%s', '%s', '%s', '%s');",
+                curfund.name, curfund.fundcode, curfund.fsarr[0], curfund.fsarr[1], curfund.fsarr[2]);
+            await this.conn.query(str);
+        }
+    }
 };
 
-FundMsg.singleton = new FundMsg();
+FundMgr.singleton = new FundMgr();
 
 // 主页面配置
 let fundbaseOptions = {
@@ -63,14 +87,17 @@ let fundbaseOptions = {
             if (element.children.length > 0 && element.children[0].children.length > 0) {
                 fsarr.push(element.children[0].children[0].data);
             }
+            else {
+                fsarr.push('');
+            }
         });
 
         for (let ii = 0; ii < fsarr.length; ++ii) {
             FundState.singleton.addState(fsarr[ii]);
         }
 
-        FundMsg.singleton.map[code].name = title;
-        FundMsg.singleton.map[code].fsarr = fsarr;
+        FundMgr.singleton.map[code].name = title;
+        FundMgr.singleton.map[code].fsarr = fsarr;
 
         return crawler;
     }
@@ -107,7 +134,7 @@ let totalfundOptions = {
                 let str0 = element.attribs.href.split(',');
                 let fundcode = str0[1].split('.')[0];
 
-                FundMsg.singleton.addFund({name: element.attribs.title, url: element.attribs.href, fundcode: fundcode, fsarr: []});
+                FundMgr.singleton.addFund({name: element.attribs.title, url: element.attribs.href, fundcode: fundcode, fsarr: []});
 
                 let co = Object.assign({}, fundbaseOptions);
                 co.uri = element.attribs.href;
@@ -127,5 +154,12 @@ let totalfundOptions = {
 
 CrawlerMgr.singleton.processCrawlerNums = 8;
 CrawlerMgr.singleton.processDelayTime = 0.3;
-CrawlerMgr.singleton.addCrawler(totalfundOptions);
-CrawlerMgr.singleton.start(true, true);
+
+FundMgr.singleton.init(mysqlcfg).then(() => {
+    CrawlerMgr.singleton.addCrawler(totalfundOptions);
+    CrawlerMgr.singleton.start(true, true, async () => {
+        FundState.singleton.output();
+
+        await FundMgr.singleton.saveFundBase();
+    });
+});
