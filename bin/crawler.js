@@ -34,7 +34,7 @@ class RecordMgr {
 
 RecordMgr.singleton = new RecordMgr();
 
-// 主页面配置
+// replay
 let replayOptions = {
     // 主地址
     uri: 'http://replay.pokermate.net:8080/handplayer/replay/?url=de6eb0a0ba32c4a9471c69b0d45228688af5cfe4e65ba99787edd6da384cb3affe3777d030db9d76e0aa92658c4784b7',
@@ -91,7 +91,8 @@ let replayOptions = {
 
             console.log(gamecode);
 
-            if (await !RecordMgr.singleton.hasGameCode(gamecode)) {
+            let hasgc = await RecordMgr.singleton.hasGameCode(gamecode);
+            if (!hasgc) {
                 await RecordMgr.singleton.insGameInfo(gamecode, gameinfo);
             }
         }
@@ -126,12 +127,122 @@ let replayOptions = {
     }
 };
 
+// shareplay
+let shareplayOptions = {
+    // 主地址
+    uri: 'http://www.bubupoker.com/Index/shareplay/id/369.html',
+    headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, sdch',
+        'Accept-Language': 'zh,en-US;q=0.8,en;q=0.6',
+        'Cache-Control': 'max-age=0',
+        'Connection': 'keep-alive',
+        'Cookie': 'PHPSESSID=m9ken0q5if7dv8j4rh2iv9l940; __qc_wId=738; pgv_pvid=664541932; Hm_lvt_25d395b9841adcce202a3a8a15ce853e=1494763793,1494842665,1494842721; Hm_lpvt_25d395b9841adcce202a3a8a15ce853e=1494898927',
+        'Host': 'www.bubupoker.com',
+        'Upgrade-Insecure-Requests': 1
+    },
+
+    timeout: 1500,
+
+    // 爬虫类型
+    crawler_type: CRAWLER.REQUEST,
+
+    // 数据分析配置
+    dataanalysis_type: DATAANALYSIS.CHEERIO,
+
+    // 持久化配置
+    storage_type: STORAGE.SQL,
+    storage_cfg: {
+        filename: 'fund.sql',
+        func_procline: ld => {
+            return util.format("insert into fundbase(name, code) values('%s', '%s');", ld.name, ld.fundcode);
+        }},
+
+    // 分析数据
+    func_analysis: async crawler => {
+        let mf = crawler.da.data('iframe#mf');
+        let mfsrc = mf[0].attribs.src;
+
+        let bstr = '/?url=';
+        let bi = mfsrc.indexOf(bstr);
+        if (bi >= 0) {
+            let str0 = mfsrc.substr(bi + bstr.length);
+            let estr = '&';
+            let ei = str0.indexOf(estr);
+            if (ei >= 0) {
+                let gamecode = str0.substr(0, ei);
+                let co = Object.assign({}, replayOptions);
+                co.uri = 'http://replay.pokermate.net:8080/handplayer/replay/?url=' + gamecode;;
+                CrawlerMgr.singleton.addCrawler(co);
+            }
+        }
+
+        return crawler;
+    }
+};
+
+// sharemain
+let sharemainOptions = {
+    // 主地址
+    uri: 'http://www.bubupoker.com/Bubudepu/Index/shareMain/p/1.html',
+    headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, sdch',
+        'Accept-Language': 'zh,en-US;q=0.8,en;q=0.6',
+        'Cache-Control': 'max-age=0',
+        'Connection': 'keep-alive',
+        'Cookie': 'PHPSESSID=m9ken0q5if7dv8j4rh2iv9l940; __qc_wId=738; pgv_pvid=664541932; Hm_lvt_25d395b9841adcce202a3a8a15ce853e=1494763793,1494842665,1494842721; Hm_lpvt_25d395b9841adcce202a3a8a15ce853e=1494898927',
+        'Host': 'www.bubupoker.com',
+        'Upgrade-Insecure-Requests': 1
+    },
+
+    timeout: 1500,
+
+    // 爬虫类型
+    crawler_type: CRAWLER.REQUEST,
+
+    // 数据分析配置
+    dataanalysis_type: DATAANALYSIS.CHEERIO,
+
+    // 持久化配置
+    storage_type: STORAGE.SQL,
+    storage_cfg: {
+        filename: 'fund.sql',
+        func_procline: ld => {
+            return util.format("insert into fundbase(name, code) values('%s', '%s');", ld.name, ld.fundcode);
+        }},
+
+    // 分析数据
+    func_analysis: async crawler => {
+        if (crawler.options.uri == 'http://www.bubupoker.com/Bubudepu/Index/shareMain/p/1.html') {
+            let maxpageobj = crawler.da.data('a.end');
+            let maxpage = parseInt(maxpageobj.text());
+
+            for (let ii = 2; ii <= maxpage; ++ii) {
+                let co = Object.assign({}, sharemainOptions);
+                co.uri = 'http://www.bubupoker.com/Bubudepu/Index/shareMain/p/' + ii + '.html';
+                CrawlerMgr.singleton.addCrawler(co);
+            }
+        }
+
+        crawler.da.data('li.list-li>a').each((index, element) => {
+            let co = Object.assign({}, shareplayOptions);
+            co.uri = 'http://www.bubupoker.com' + element.attribs.href;
+            CrawlerMgr.singleton.addCrawler(co);
+        });
+
+        return crawler;
+    }
+};
+
 //CrawlerMgr.singleton.startHeapdump(10000);
 //CrawlerMgr.singleton.startMemWatch();
 
 CrawlerMgr.singleton.processCrawlerNums = 8;
-CrawlerMgr.singleton.processDelayTime = 0.3;
-CrawlerMgr.singleton.addCrawler(replayOptions);
+CrawlerMgr.singleton.processDelayTime = 3;
+CrawlerMgr.singleton.addCrawler(sharemainOptions);
 
 RecordMgr.singleton.init(mysqlcfg).then(() => {
     CrawlerMgr.singleton.start(true, true);
