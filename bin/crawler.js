@@ -169,13 +169,18 @@ let shareplayOptions = {
         if (bi >= 0) {
             let str0 = mfsrc.substr(bi + bstr.length);
             let estr = '&';
+            let gamecode = undefined;
             let ei = str0.indexOf(estr);
             if (ei >= 0) {
-                let gamecode = str0.substr(0, ei);
-                let co = Object.assign({}, replayOptions);
-                co.uri = 'http://replay.pokermate.net:8080/handplayer/replay/?url=' + gamecode;;
-                CrawlerMgr.singleton.addCrawler(co);
+                gamecode = str0.substr(0, ei);
             }
+            else {
+                gamecode = str0;
+            }
+
+            let co = Object.assign({}, replayOptions);
+            co.uri = 'http://replay.pokermate.net:8080/handplayer/replay/?url=' + gamecode;;
+            CrawlerMgr.singleton.addCrawler(co);
         }
 
         return crawler;
