@@ -92,6 +92,10 @@ let fundbaseOptions = {
             }
         });
 
+        if (fsarr.length == 2) {
+            fsarr.splice(0, 0, '');
+        }
+
         for (let ii = 0; ii < fsarr.length; ++ii) {
             FundState.singleton.addState(fsarr[ii]);
         }
@@ -139,6 +143,8 @@ let totalfundOptions = {
                 let co = Object.assign({}, fundbaseOptions);
                 co.uri = element.attribs.href;
                 CrawlerMgr.singleton.addCrawler(co);
+
+                // return false;
                 //crawler.storage.pushData({name: element.attribs.title, url: element.attribs.href, fundcode: fundcode});
             }
 
@@ -161,5 +167,5 @@ FundMgr.singleton.init(mysqlcfg).then(() => {
         FundState.singleton.output();
 
         await FundMgr.singleton.saveFundBase();
-    });
+    }, true);
 });
