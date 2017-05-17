@@ -9,6 +9,8 @@ const MODE_INITBASE = false;
 
 const mysqlcfg = JSON.parse(fs.readFileSync('./mysqlcfg_hfdb.json').toString());
 
+mysqlcfg.multipleStatements = true;
+
 class FundState {
     constructor() {
         this.arr = [];
@@ -54,6 +56,8 @@ class FundMgr {
 
     async saveFundArch(fundcode, lst, year) {
         for (let mi = 1; mi <= 12; ++mi) {
+            let fullstr = '';
+
             let curm = '' + year + '-';
             if (mi < 10) {
                 curm += '0';
@@ -79,8 +83,13 @@ class FundMgr {
                         curarch.unit_net_chng_pct_1_year, curarch.unit_net_chng_pct_3_mon, curarch.guess_net);
 
                     //console.log(str);
-                    await this.conn.query(str);
+
+                    fullstr += str;
                 }
+            }
+
+            if (fullstr != '') {
+                await this.conn.query(fullstr);
             }
         }
     }
