@@ -247,7 +247,8 @@ let sharemainOptions = {
 
 CrawlerMgr.singleton.processCrawlerNums = 8;
 CrawlerMgr.singleton.processDelayTime = 3;
-CrawlerMgr.singleton.addCrawler(sharemainOptions);
+// CrawlerMgr.singleton.addCrawler(sharemainOptions);
+CrawlerMgr.singleton.addCrawler(replayOptions);
 
 RecordMgr.singleton.init(mysqlcfg).then(() => {
     CrawlerMgr.singleton.start(true, true);

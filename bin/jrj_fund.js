@@ -55,6 +55,7 @@ class FundMgr {
     }
 
     async saveFundArch(fundcode, lst, year) {
+        let tname = 'networth_' + fundcode.charAt(5);
         for (let mi = 1; mi <= 12; ++mi) {
             let fullstr = '';
 
@@ -76,9 +77,9 @@ class FundMgr {
                 if (lst.hasOwnProperty(curday)) {
                     let curarch = lst[curday];
 
-                    let str = util.format("insert into networth(fundcode, enddate, accum_net, unit_net, unit_net_chng_1, unit_net_chng_pct, unit_net_chng_pct_1_mon, unit_net_chng_pct_1_week, unit_net_chng_pct_1_year, unit_net_chng_pct_3_mon, guess_net) " +
+                    let str = util.format("insert into %s(fundcode, enddate, accum_net, unit_net, unit_net_chng_1, unit_net_chng_pct, unit_net_chng_pct_1_mon, unit_net_chng_pct_1_week, unit_net_chng_pct_1_year, unit_net_chng_pct_3_mon, guess_net) " +
                         "values('%s', '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d);",
-                        fundcode, curday, curarch.accum_net, curarch.unit_net, curarch.unit_net_chng_1,
+                        tname, fundcode, curday, curarch.accum_net, curarch.unit_net, curarch.unit_net_chng_1,
                         curarch.unit_net_chng_pct, curarch.unit_net_chng_pct_1_mon, curarch.unit_net_chng_pct_1_week,
                         curarch.unit_net_chng_pct_1_year, curarch.unit_net_chng_pct_3_mon, curarch.guess_net);
 
@@ -320,6 +321,6 @@ FundMgr.singleton.init(mysqlcfg).then(() => {
     CrawlerMgr.singleton.start(true, true, async () => {
         FundState.singleton.output();
 
-        await FundMgr.singleton.saveFundBase();
+        //await FundMgr.singleton.saveFundBase();
     }, true);
 });
