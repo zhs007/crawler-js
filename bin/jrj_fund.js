@@ -4,8 +4,17 @@ let {CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE} = require('../index');
 let util = require('util');
 let fs = require('fs');
 let mysql = require('mysql2/promise');
+let moment = require('moment');
 
-const MODE_INITBASE = false;
+const START_YEAR    = 2015;
+const END_YEAR      = 2017;
+
+const MODE_INITFUNDBASE = 0;
+const MODE_INITFUNDARCH = 1;
+const MODE_UPDFUNDARCH  = 2;
+
+// const MODE_INITBASE = true;
+const CURMODE = MODE_UPDFUNDARCH;
 
 const mysqlcfg = JSON.parse(fs.readFileSync('./mysqlcfg_hfdb.json').toString());
 
@@ -94,6 +103,64 @@ class FundMgr {
             }
         }
     }
+
+    async saveFundArchEx(fundcode, lst, year, startday, endday) {
+        let tname = 'networth_' + fundcode.charAt(5);
+        for (let mi = 1; mi <= 12; ++mi) {
+            let fullstr = '';
+
+            let curm = '' + year + '-';
+            if (mi < 10) {
+                curm += '0';
+            }
+
+            curm += mi;
+
+            for (let di = 1; di <= 31; ++di) {
+                let curday = curm + '-';
+                if (di < 10) {
+                    curday += '0';
+                }
+
+                curday += di;
+
+                if (lst.hasOwnProperty(curday)) {
+                    let curarch = lst[curday];
+
+                    if (curday >= startday && curday <= endday) {
+                        {
+                            let str = util.format("delete from %s where fundcode = '%s' and enddate = '%s';", tname, fundcode, curday);
+                            // let str = util.format("update %s set accum_net = %d, unit_net = %d, unit_net_chng_1 = %d, unit_net_chng_pct = %d, unit_net_chng_pct_1_mon = %d, " +
+                            //     "unit_net_chng_pct_1_week = %d, unit_net_chng_pct_1_year = %d, unit_net_chng_pct_3_mon = %d, guess_net = %d where fundcode = '%s' and enddate = '%s';",
+                            //     tname, curarch.accum_net, curarch.unit_net, curarch.unit_net_chng_1,
+                            //     curarch.unit_net_chng_pct, curarch.unit_net_chng_pct_1_mon, curarch.unit_net_chng_pct_1_week,
+                            //     curarch.unit_net_chng_pct_1_year, curarch.unit_net_chng_pct_3_mon, curarch.guess_net, fundcode, curday);
+
+                            // console.log(str);
+
+                            fullstr += str;
+                        }
+
+                        {
+                            let str = util.format("insert into %s(fundcode, enddate, accum_net, unit_net, unit_net_chng_1, unit_net_chng_pct, unit_net_chng_pct_1_mon, unit_net_chng_pct_1_week, unit_net_chng_pct_1_year, unit_net_chng_pct_3_mon, guess_net) " +
+                                "values('%s', '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d);",
+                                tname, fundcode, curday, curarch.accum_net, curarch.unit_net, curarch.unit_net_chng_1,
+                                curarch.unit_net_chng_pct, curarch.unit_net_chng_pct_1_mon, curarch.unit_net_chng_pct_1_week,
+                                curarch.unit_net_chng_pct_1_year, curarch.unit_net_chng_pct_3_mon, curarch.guess_net);
+
+                            //console.log(str);
+
+                            fullstr += str;
+                        }
+                    }
+                }
+            }
+
+            if (fullstr != '') {
+                await this.conn.query(fullstr);
+            }
+        }
+    }
 };
 
 FundMgr.singleton = new FundMgr();
@@ -102,6 +169,9 @@ FundMgr.singleton = new FundMgr();
 let fundarchOptions = {
     fundcode: '000975',
     year: 2016,
+
+    startday: '',
+    endday: '',
 
     // 主地址
     uri: 'http://fund.jrj.com.cn/json/archives/history/netvalue?fundCode=000975&obj=obj&date=2016',
@@ -179,10 +249,15 @@ let fundarchOptions = {
                 }
             }
 
-            if (crawler.options.year == 2017) {
-                for (let iy = 2015; iy <= 2017; ++iy) {
-                    await FundMgr.singleton.saveFundArch(crawler.options.fundcode, fundinfo.lstval, iy);
+            if (crawler.options.startday == crawler.options.endday) {
+                if (crawler.options.year == END_YEAR) {
+                    for (let iy = START_YEAR; iy <= END_YEAR; ++iy) {
+                        await FundMgr.singleton.saveFundArch(crawler.options.fundcode, fundinfo.lstval, iy);
+                    }
                 }
+            }
+            else {
+                await FundMgr.singleton.saveFundArchEx(crawler.options.fundcode, fundinfo.lstval, crawler.options.year, crawler.options.startday, crawler.options.endday);
             }
         }
 
@@ -283,13 +358,37 @@ let totalfundOptions = {
                     lstval: {}
                 });
 
-                if (MODE_INITBASE) {
+                if (CURMODE == MODE_INITFUNDBASE) {
                     let co = Object.assign({}, fundbaseOptions);
                     co.uri = element.attribs.href;
                     CrawlerMgr.singleton.addCrawler(co);
                 }
+                else if (CURMODE == MODE_UPDFUNDARCH) {
+                    let curyear = moment().format('YYYY');
+                    let curday = moment().format('YYYY-MM-DD');
+                    let lastday = moment(curday).subtract(15, 'days').format('YYYY-MM-DD');
+                    let lastyear = moment(lastday).format('YYYY');
+
+                    if (lastyear != curyear) {
+                        let co = Object.assign({}, fundarchOptions);
+                        co.fundcode = fundcode;
+                        co.year = lastyear;
+                        co.startday = lastday;
+                        co.endday = curday;
+                        co.uri = util.format('http://fund.jrj.com.cn/json/archives/history/netvalue?fundCode=%s&obj=obj&date=%d', fundcode, lastyear);
+                        CrawlerMgr.singleton.addCrawler(co);
+                    }
+
+                    let co = Object.assign({}, fundarchOptions);
+                    co.fundcode = fundcode;
+                    co.year = curyear;
+                    co.startday = lastday;
+                    co.endday = curday;
+                    co.uri = util.format('http://fund.jrj.com.cn/json/archives/history/netvalue?fundCode=%s&obj=obj&date=%d', fundcode, curyear);
+                    CrawlerMgr.singleton.addCrawler(co);
+                }
                 else {
-                    for (let year = 2015; year <= 2017; ++year) {
+                    for (let year = START_YEAR; year <= END_YEAR; ++year) {
                         let co = Object.assign({}, fundarchOptions);
                         co.fundcode = fundcode;
                         co.year = year;
@@ -321,6 +420,9 @@ FundMgr.singleton.init(mysqlcfg).then(() => {
     CrawlerMgr.singleton.start(true, true, async () => {
         FundState.singleton.output();
 
-        //await FundMgr.singleton.saveFundBase();
+        if (CURMODE == MODE_INITFUNDBASE) {
+            await FundMgr.singleton.saveFundBase();
+        }
+
     }, true);
 });

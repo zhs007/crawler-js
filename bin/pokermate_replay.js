@@ -37,7 +37,7 @@ RecordMgr.singleton = new RecordMgr();
 // replay
 let replayOptions = {
     // 主地址
-    uri: 'http://replay.pokermate.net:8080/handplayer/replay/?url=de6eb0a0ba32c4a9471c69b0d45228688af5cfe4e65ba99787edd6da384cb3affe3777d030db9d76e0aa92658c4784b7',
+    uri: 'http://replay.pokermate.net:8080/handplayer/replay/?url=de6eb0a0ba32c4a905c9119c25ec0d7d601d2e7f76667d3c6ed88ce68b3ad55ae5c96ac604671426cafa0792ee9c2d29',
     headers: {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -247,7 +247,7 @@ let sharemainOptions = {
 
 CrawlerMgr.singleton.processCrawlerNums = 8;
 CrawlerMgr.singleton.processDelayTime = 3;
-// CrawlerMgr.singleton.addCrawler(sharemainOptions);
+//CrawlerMgr.singleton.addCrawler(sharemainOptions);
 CrawlerMgr.singleton.addCrawler(replayOptions);
 
 RecordMgr.singleton.init(mysqlcfg).then(() => {
