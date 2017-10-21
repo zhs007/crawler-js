@@ -15,17 +15,18 @@ let {CRAWLER, DATAANALYSIS, STORAGE} = require('./lib/basedef');
 let CrawlerMgr = require('./lib/crawlermgr');
 
 // options
-//      - uri: string
-//      - force_encoding
+//      - uri: string or string array
+//      - force_encoding: default utf8
+//      - timeout: request timeout
 //      - async func_analysis(crawler)
-//      - crawler_type
-//      - dataanalysis_type
-//      - storage_type
+//      - crawler_type: CRAWLER.REQUEST ...
+//      - dataanalysis_type: DATAANALYSIS.CHEERIO ...
+//      - storage_type: STORAGE.CSV ...
 //      - storage_cfg
-//      - storage_cfg for csv {filename}
-//      - storage_cfg for json {filename}
-//      - storage_cfg for sql {filename, func_procline(lineobj)}
-//      - storage_cfg for mysql {func_procline(lineobj), mysqlcfg: {host, user, password, database}}
+//          - storage_cfg for csv {filename}
+//          - storage_cfg for json {filename}
+//          - storage_cfg for sql {filename, func_procline(lineobj)}
+//          - storage_cfg for mysql {func_procline(lineobj), mysqlcfg: {host, user, password, database}}
 
 //require('./lib/headlesschrome');
 
