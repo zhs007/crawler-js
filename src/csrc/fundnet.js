@@ -36,6 +36,29 @@ function analysisNode(crawler, element) {
         }
     });
 
+    let curfund = {
+        code: code,
+        name: name,
+        uri: uri,
+        net: net,
+        totalnet: totalnet
+    };
+
+    if (crawler.options.fundmap.hasOwnProperty(code)) {
+        let lastfund = crawler.options.fundmap[code];
+        if (lastfund.net == undefined && lastfund.totalnet == undefined) {
+            crawler.options.fundmap[code] = curfund;
+        }
+        else {
+            console.log(util.format('error %s %s %s %s %s', code, name, uri, net, totalnet));
+
+            return ;
+        }
+    }
+    else {
+        crawler.options.fundmap[code] = curfund;
+    }
+
     console.log(util.format('fundnet %s %s %s %s %s', code, name, uri, net, totalnet));
 
     return ;
@@ -83,7 +106,9 @@ function addFundNetCrawler(startday, endday, baseop) {
 
     while (sd.isBefore(ed)) {
         let op = Object.assign({}, baseop);
-        op.uri = util.format('http://fund.csrc.gov.cn/web/open_fund_daily_net.daily_report?fundType=6020-6010&netDate=%s', sd.format('YYYY-MM_DD'));
+        op.curday = sd.format('YYYY-MM-DD');
+        op.uri = util.format('http://fund.csrc.gov.cn/web/open_fund_daily_net.daily_report?fundType=6020-6010&netDate=%s', op.curday);
+        op.fundmap = {};
         CrawlerMgr.singleton.addCrawler(op);
         sd = sd.add(1, 'days');
     }

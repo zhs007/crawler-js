@@ -2,12 +2,10 @@
 
 let process = require('process');
 let {CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE} = require('../index');
-let {companyOptions} = require('../src/csrc/company');
 let {fundnetOptions, addFundNetCrawler} = require('../src/csrc/fundnet');
 let {FundMgr} = require('../src/csrc/fundmgr');
 
 let fundmgr = new FundMgr();
-companyOptions.fundmgr = fundmgr;
 fundnetOptions.fundmgr = fundmgr;
 
 process.on('unhandledRejection', (reason, p) => {
