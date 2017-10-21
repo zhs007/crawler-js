@@ -3,6 +3,7 @@
 let {CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE} = require('../index');
 let util = require('util');
 let fs = require('fs');
+let process = require('process');
 let mysql = require('mysql2/promise');
 let moment = require('moment');
 
@@ -90,7 +91,7 @@ class FundMgr {
                         curarch.unit_net_chng_pct != 0 || curarch.unit_net_chng_pct_1_mon != 0 ||
                         curarch.unit_net_chng_pct_1_week != 0 || curarch.unit_net_chng_pct_1_year != 0 ||
                         curarch.unit_net_chng_pct_3_mon != 0 || curarch.guess_net != 0) {
-                        
+
                         let str = util.format("insert into %s(fundcode, enddate, accum_net, unit_net, unit_net_chng_1, unit_net_chng_pct, unit_net_chng_pct_1_mon, unit_net_chng_pct_1_week, unit_net_chng_pct_1_year, unit_net_chng_pct_3_mon, guess_net) " +
                             "values('%s', '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d);",
                             tname, fundcode, curday, curarch.accum_net, curarch.unit_net, curarch.unit_net_chng_1,
@@ -422,6 +423,11 @@ let totalfundOptions = {
 
 //CrawlerMgr.singleton.startHeapdump(10000);
 //CrawlerMgr.singleton.startMemWatch();
+
+process.on('unhandledRejection', (reason, p) => {
+    console.log('Unhandled Rejection at:', p, 'reason:', reason);
+    // application specific logging, throwing an error, or other logic here
+});
 
 CrawlerMgr.singleton.processCrawlerNums = 8;
 CrawlerMgr.singleton.processDelayTime = 0.3;
