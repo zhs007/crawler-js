@@ -3,7 +3,9 @@
 let {CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE} = require('../../index');
 let cheerio = require('cheerio');
 
-function analysisCompany(element) {
+function analysisCompany(crawler, element) {
+    let companycode = '';
+
     cheerio(element).children('span.fundtitle').each((ci, cele) => {
         let obj = cheerio(cele).children('a');
         let href = obj.attr('href');
@@ -37,11 +39,17 @@ function analysisCompany(element) {
             }
         }
 
-        console.log('CompanyOptions ' + cname + ' ' + code + ' ' + href);
+        console.log('Company ' + cname + ' ' + code + ' ' + href);
+
+        crawler.options.fundmgr.addCompany(code, cname, href);
+
+        companycode = code;
     });
+
+    return companycode;
 }
 
-function analysisFund(element) {
+function analysisFund(crawler, companycode, element) {
     cheerio(element).children('ul.zzbb').each((ni, nele) => {
         cheerio(nele).children('li').each((ci, cele) => {
             let obj = cheerio(cele).children('a');
@@ -76,12 +84,30 @@ function analysisFund(element) {
                 }
             }
 
-            console.log('CompanyOptions ' + cname + ' ' + code + ' ' + href);
+            console.log('Fund ' + companycode + ' ' + cname + ' ' + code + ' ' + href);
+
+            crawler.options.fundmgr.addFund(companycode, code, cname, href);
         });
     });
 }
 
-let CompanyOptions = {
+// 分析数据
+async function func_analysis(crawler) {
+    crawler.da.data('ul#fundCompany').each((index, element) => {
+        cheerio(element).children('li').each((ni, nele) => {
+            let companycode = analysisCompany(crawler, nele);
+            analysisFund(crawler, companycode, nele);
+
+            return true;
+        });
+
+        return true;
+    });
+
+    return crawler;
+}
+
+let companyOptions = {
     // 主地址
     uri: [
         'http://fund.csrc.gov.cn/web/fund_compay_affiche.fund_affiche?type=4040-1010',
@@ -98,20 +124,7 @@ let CompanyOptions = {
     dataanalysis_type: DATAANALYSIS.CHEERIO,
 
     // 分析数据
-    func_analysis: async crawler => {
-        crawler.da.data('ul#fundCompany').each((index, element) => {
-            cheerio(element).children('li').each((ni, nele) => {
-                analysisCompany(nele);
-                analysisFund(nele);
-
-                return true;
-            });
-
-            return true;
-        });
-
-        return crawler;
-    }
+    func_analysis: func_analysis
 };
 
-exports.CompanyOptions = CompanyOptions;
+exports.companyOptions = companyOptions;
