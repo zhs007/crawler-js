@@ -14,7 +14,7 @@ CrawlerMgr.singleton.processCrawlerNums = 8;
 CrawlerMgr.singleton.processDelayTime = 0.3;
 
 FundMgr.singleton.init().then(() => {
-    addFundNetCrawler('2009-01-01', '2017-10-21', fundnetOptions);
+    addFundNetCrawler('2009-01-01', '2009-12-31', fundnetOptions);
     CrawlerMgr.singleton.start(true, true, async () => {
         await FundMgr.singleton.saveFundBase();
     }, true);

@@ -13,27 +13,80 @@ function analysisNode(crawler, element) {
     let uri = '';
     let net = undefined;
     let totalnet = undefined;
+    let hundred = undefined;
+    let tenthousand = undefined;
+    let million = undefined;
+    let annualizedrate = undefined;
 
     cheerio('td', element).each((ci, cele) => {
         let obj = cheerio(cele);
-        if (ci == 1) {
-            code = obj.text();
-        }
-        else if (ci == 2) {
-            let obj = cheerio(cele).children('a');
-            uri = obj.attr('href');
-            name = obj.text().trim();
-        }
-        else if (ci == 3) {
-            let ct = obj.text();
-            if (ct != '') {
-                net = Math.floor(parseFloat(ct) * 10000);
+        if (crawler.options.mode2) {
+            if (ci == 1) {
+                code = obj.text();
+            }
+            else if (ci == 2) {
+                let obj = cheerio(cele).children('a');
+                uri = obj.attr('href');
+                name = obj.text().trim();
+            }
+            else if (ci == 3) {
+                let ct = obj.text();
+                if (ct != '') {
+                    hundred = Math.floor(parseFloat(ct) * 10000);
+                }
+            }
+            else if (ci == 4) {
+                let ct = obj.text();
+                if (ct != '') {
+                    tenthousand = Math.floor(parseFloat(ct) * 10000);
+                }
+            }
+            else if (ci == 5) {
+                let ct = obj.text();
+                if (ct != '') {
+                    million = Math.floor(parseFloat(ct) * 10000);
+                }
+            }
+            else if (ci == 6) {
+                let ct = obj.text();
+                if (ct != '') {
+                    let arrct = ct.split('%');
+                    annualizedrate = Math.floor(parseFloat(arrct[0]) * 10000);
+                }
+            }
+            else if (ci == 7) {
+                let ct = obj.text();
+                if (ct != '') {
+                    net = Math.floor(parseFloat(ct) * 10000);
+                }
+            }
+            else if (ci == 8) {
+                let ct = obj.text();
+                if (ct != '') {
+                    totalnet = Math.floor(parseFloat(ct) * 10000);
+                }
             }
         }
-        else if (ci == 4) {
-            let ct = obj.text();
-            if (ct != '') {
-                totalnet = Math.floor(parseFloat(ct) * 10000);
+        else {
+            if (ci == 1) {
+                code = obj.text();
+            }
+            else if (ci == 2) {
+                let obj = cheerio(cele).children('a');
+                uri = obj.attr('href');
+                name = obj.text().trim();
+            }
+            else if (ci == 3) {
+                let ct = obj.text();
+                if (ct != '') {
+                    net = Math.floor(parseFloat(ct) * 10000);
+                }
+            }
+            else if (ci == 4) {
+                let ct = obj.text();
+                if (ct != '') {
+                    totalnet = Math.floor(parseFloat(ct) * 10000);
+                }
             }
         }
     });
@@ -43,7 +96,11 @@ function analysisNode(crawler, element) {
         name: name,
         uri: 'http://fund.csrc.gov.cn' + uri,
         net: net,
-        totalnet: totalnet
+        totalnet: totalnet,
+        hundred: hundred,
+        tenthousand: tenthousand,
+        million: million,
+        annualizedrate: annualizedrate
     };
 
     // if (crawler.options.fundmap.hasOwnProperty(code)) {
@@ -122,11 +179,76 @@ function addFundNetCrawler(startday, endday, baseop) {
     let ed = moment(endday);
 
     while (sd.isBefore(ed)) {
-        let op = Object.assign({}, baseop);
-        op.curday = sd.format('YYYY-MM-DD');
-        op.uri = util.format('http://fund.csrc.gov.cn/web/open_fund_daily_net.daily_report?fundType=6020-6010&netDate=%s', op.curday);
-        op.fundmap = {};
-        CrawlerMgr.singleton.addCrawler(op);
+        // 股票型
+        {
+            let op = Object.assign({}, baseop);
+            op.curday = sd.format('YYYY-MM-DD');
+            op.uri = util.format('http://fund.csrc.gov.cn/web/open_fund_daily_net.daily_report?fundType=6020-6010&netDate=%s', op.curday);
+            op.fundmap = {};
+            op.mode2 = false;
+            CrawlerMgr.singleton.addCrawler(op);
+        }
+
+        // 混合型
+        {
+            let op = Object.assign({}, baseop);
+            op.curday = sd.format('YYYY-MM-DD');
+            op.uri = util.format('http://fund.csrc.gov.cn/web/open_fund_daily_net.daily_report?fundType=6020-6040&netDate=%s', op.curday);
+            op.fundmap = {};
+            op.mode2 = false;
+            CrawlerMgr.singleton.addCrawler(op);
+        }
+
+        // 债券型
+        {
+            let op = Object.assign({}, baseop);
+            op.curday = sd.format('YYYY-MM-DD');
+            op.uri = util.format('http://fund.csrc.gov.cn/web/open_fund_daily_net.daily_report?fundType=6020-6030&netDate=%s', op.curday);
+            op.fundmap = {};
+            op.mode2 = false;
+            CrawlerMgr.singleton.addCrawler(op);
+        }
+
+        // QDII
+        {
+            let op = Object.assign({}, baseop);
+            op.curday = sd.format('YYYY-MM-DD');
+            op.uri = util.format('http://fund.csrc.gov.cn/web/open_fund_daily_net.daily_report?fundType=6020-6050&netDate=%s', op.curday);
+            op.fundmap = {};
+            op.mode2 = false;
+            CrawlerMgr.singleton.addCrawler(op);
+        }
+
+        // 封闭式
+        {
+            let op = Object.assign({}, baseop);
+            op.curday = sd.format('YYYY-MM-DD');
+            op.uri = util.format('http://fund.csrc.gov.cn/web/open_fund_daily_net.daily_report?fundType=6030-1010&netDate=%s', op.curday);
+            op.fundmap = {};
+            op.mode2 = false;
+            CrawlerMgr.singleton.addCrawler(op);
+        }
+
+        // 货币型
+        {
+            let op = Object.assign({}, baseop);
+            op.curday = sd.format('YYYY-MM-DD');
+            op.uri = util.format('http://fund.csrc.gov.cn/web/open_fund_daily_net.daily_report?fundType=6020-6020&netDate=%s', op.curday);
+            op.fundmap = {};
+            op.mode2 = true;
+            CrawlerMgr.singleton.addCrawler(op);
+        }
+
+        // 短期理财债券型
+        {
+            let op = Object.assign({}, baseop);
+            op.curday = sd.format('YYYY-MM-DD');
+            op.uri = util.format('http://fund.csrc.gov.cn/web/open_fund_daily_net.daily_report?fundType=6020-6060&netDate=%s', op.curday);
+            op.fundmap = {};
+            op.mode2 = true;
+            CrawlerMgr.singleton.addCrawler(op);
+        }
+
         sd = sd.add(1, 'days');
     }
 }
