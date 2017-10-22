@@ -2,6 +2,7 @@
 
 let {CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE} = require('../../index');
 let {addFundCrawler} = require('./fund');
+let {FundMgr} = require('./fundmgr');
 let cheerio = require('cheerio');
 let moment = require('moment');
 let util = require('util');
@@ -40,28 +41,33 @@ function analysisNode(crawler, element) {
     let curfund = {
         code: code,
         name: name,
-        uri: uri,
+        uri: 'http://fund.csrc.gov.cn' + uri,
         net: net,
         totalnet: totalnet
     };
 
-    if (crawler.options.fundmap.hasOwnProperty(code)) {
-        let lastfund = crawler.options.fundmap[code];
-        if (lastfund.net == undefined && lastfund.totalnet == undefined) {
-            crawler.options.fundmap[code] = curfund;
-        }
-        else {
-            console.log(util.format('error %s %s %s %s %s', code, name, uri, net, totalnet));
+    // if (crawler.options.fundmap.hasOwnProperty(code)) {
+    //     let lastfund = crawler.options.fundmap[code];
+    //     if (lastfund.net == undefined && lastfund.totalnet == undefined) {
+    //         crawler.options.fundmap[code] = curfund;
+    //     }
+    //     else {
+    //         console.log(util.format('error %s %s %s %s %s', code, name, uri, net, totalnet));
+    //
+    //         return ;
+    //     }
+    // }
+    // else {
+    //     crawler.options.fundmap[code] = curfund;
+    // }
 
-            return ;
-        }
-    }
-    else {
-        crawler.options.fundmap[code] = curfund;
-    }
+    crawler.options.fundmap[code] = curfund;
 
     console.log(util.format('fundnet %s %s %s %s %s', code, name, uri, net, totalnet));
-    addFundCrawler('http://fund.csrc.gov.cn' + uri);
+
+    // if (!FundMgr.singleton.isAlreadyInDB(code)) {
+    //     addFundCrawler(curfund);
+    // }
 
     return ;
 }
@@ -81,6 +87,15 @@ async function func_analysis(crawler) {
 
         return true;
     });
+
+    for (let code in crawler.options.fundmap) {
+        let curfund = crawler.options.fundmap[code];
+        if (FundMgr.singleton.isNeedIn(code)) {
+            addFundCrawler(curfund);
+        }
+    }
+
+    await FundMgr.singleton.saveFundNet(crawler.options.fundmap, crawler.options.curday);
 
     return crawler;
 }
