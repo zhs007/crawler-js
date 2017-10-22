@@ -1,6 +1,7 @@
 "use strict";
 
 let {CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE} = require('../../index');
+let {addFundCrawler} = require('./fund');
 let cheerio = require('cheerio');
 let moment = require('moment');
 let util = require('util');
@@ -60,6 +61,7 @@ function analysisNode(crawler, element) {
     }
 
     console.log(util.format('fundnet %s %s %s %s %s', code, name, uri, net, totalnet));
+    addFundCrawler('http://fund.csrc.gov.cn' + uri);
 
     return ;
 }

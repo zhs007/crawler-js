@@ -16,7 +16,7 @@ process.on('unhandledRejection', (reason, p) => {
 CrawlerMgr.singleton.processCrawlerNums = 8;
 CrawlerMgr.singleton.processDelayTime = 0.3;
 
-addFundNetCrawler('2017-10-01', '2017-10-21', fundnetOptions);
+addFundNetCrawler('2017-10-20', '2017-10-21', fundnetOptions);
 
 // CrawlerMgr.singleton.addCrawler(fundnetOptions);
 CrawlerMgr.singleton.start(true, true, async () => {
