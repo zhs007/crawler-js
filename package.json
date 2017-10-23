@@ -4,16 +4,7 @@
   "description": "crawler js",
   "main": "./bin/crawler.js",
   "dependencies": {
-    "cheerio": "*",
-    "chrome-remote-interface": "*",
-    "moment": "*",
-    "request": "*",
-    "request-promise": "*",
-    "lighthouse": "*",
-    "iconv-lite": "*",
-    "mysql2": "*",
-    "heapdump": "*",
-    "memwatch-next": "*"
+    "crawlercore": "^1.0.2"
   },
   "scripts": {
     "start": "node ./bin/crawler.js"
