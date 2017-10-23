@@ -1,6 +1,6 @@
 "use strict";
 
-let {CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE} = require('../index');
+let {CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE} = require('crawlercore');
 let util = require('util');
 let fs = require('fs');
 let process = require('process');
