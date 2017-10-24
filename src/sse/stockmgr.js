@@ -4,6 +4,7 @@ const util = require('util');
 const fs = require('fs');
 const mysql = require('mysql2/promise');
 const moment = require('moment');
+// const { addStockPriceMCrawler } = require('./stockpricem');
 
 const mysqlcfg = JSON.parse(fs.readFileSync('./mysqlcfg_hfdb.json').toString());
 mysqlcfg.multipleStatements = true;
@@ -84,60 +85,49 @@ class StockMgr{
         }
     }
 
-    async saveFundNet(map, curday) {
+    async saveStockPriceM(code, lst, curday) {
         let fullsql = '';
         let sqlnums = 0;
 
-        // 绝对信任最新的数据，所以干脆先把老数据删掉
-        for (let i = 0; i < 10; ++i) {
-            let sql = util.format("delete from csrcfundnet_%d where curday = '%s';", i, curday);
+        // // 绝对信任最新的数据，所以干脆先把老数据删掉
+        // for (let i = 0; i < 10; ++i) {
+        //     let sql = util.format("delete from csrcfundnet_%d where curday = '%s';", i, curday);
+        //
+        //     fullsql += sql;
+        //     ++sqlnums;
+        // }
+        //
+        // try{
+        //     await this.conn.query(fullsql);
+        // }
+        // catch(err) {
+        //     console.log('mysql err: ' + fullsql);
+        // }
+        //
+        // fullsql = '';
+        // sqlnums = 0;
 
-            fullsql += sql;
-            ++sqlnums;
-        }
-
-        try{
-            await this.conn.query(fullsql);
-        }
-        catch(err) {
-            console.log('mysql err: ' + fullsql);
-        }
-
-        fullsql = '';
-        sqlnums = 0;
-
-        for (let code in map) {
-            let curfundnet = map[code];
+        for (let i = 0; i < lst.length; ++i) {
+            let cursp = lst[i];
             let str0 = '';
             let str1 = '';
 
-            let cfn = {
-                code: curfundnet.code,
-                curday: curday,
-                unitnet: curfundnet.net,
-                accumnet: curfundnet.totalnet,
-                hundred: curfundnet.hundred,
-                tenthousand: curfundnet.tenthousand,
-                million: curfundnet.million,
-                annualizedrate: curfundnet.annualizedrate
-            };
-
-            let i = 0;
-            for (let key in cfn) {
-                if (cfn[key] != undefined) {
-                    if (i != 0) {
+            let j = 0;
+            for (let key in cursp) {
+                if (cursp[key] != undefined) {
+                    if (j != 0) {
                         str0 += ', ';
                         str1 += ', ';
                     }
 
                     str0 += '`' + key + '`';
-                    str1 += "'" + cfn[key] + "'";
+                    str1 += "'" + cursp[key] + "'";
 
-                    ++i;
+                    ++j;
                 }
             }
 
-            let tname = 'csrcfundnet_' + code.charAt(5);
+            let tname = 'ssestock_price_m_' + code.charAt(5);
             let sql = util.format("insert into %s(%s) values(%s);", tname, str0, str1);
 
             fullsql += sql;
@@ -164,6 +154,64 @@ class StockMgr{
                 console.log('mysql err: ' + fullsql);
             }
         }
+
+        return true;
+    }
+
+    async saveStockPriceD(code, curobj, curday) {
+        let fullsql = '';
+        let sqlnums = 0;
+
+        // // 绝对信任最新的数据，所以干脆先把老数据删掉
+        // for (let i = 0; i < 10; ++i) {
+        //     let sql = util.format("delete from csrcfundnet_%d where curday = '%s';", i, curday);
+        //
+        //     fullsql += sql;
+        //     ++sqlnums;
+        // }
+        //
+        // try{
+        //     await this.conn.query(fullsql);
+        // }
+        // catch(err) {
+        //     console.log('mysql err: ' + fullsql);
+        // }
+        //
+        // fullsql = '';
+        // sqlnums = 0;
+
+
+        let str0 = '';
+        let str1 = '';
+
+        let j = 0;
+        for (let key in curobj) {
+            if (curobj[key] != undefined) {
+                if (j != 0) {
+                    str0 += ', ';
+                    str1 += ', ';
+                }
+
+                str0 += '`' + key + '`';
+                str1 += "'" + curobj[key] + "'";
+
+                ++j;
+            }
+        }
+
+        let tname = 'ssestock_price_d_' + code.charAt(5);
+        let sql = util.format("insert into %s(%s) values(%s);", tname, str0, str1);
+
+
+        try {
+            // console.log(sql);
+            await this.conn.query(sql);
+        }
+        catch(err) {
+            console.log('mysql err: ' + sql);
+        }
+
+        return true;
     }
 
     isAlreadyInDB(code) {

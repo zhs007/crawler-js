@@ -2,9 +2,11 @@
 
 let process = require('process');
 let moment = require('moment');
-let {CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE} = require('crawlercore');
-let {startStockListCrawler} = require('../src/sse/stocklist');
-let {StockMgr} = require('../src/sse/stockmgr');
+let { CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE } = require('crawlercore');
+let { startStockListCrawler } = require('../src/sse/stocklist');
+let { addAllStockPriceMCrawler } = require('../src/sse/stockpricem');
+let { addAllStockPriceDCrawler } = require('../src/sse/stockpriced');
+let { StockMgr } = require('../src/sse/stockmgr');
 
 process.on('unhandledRejection', (reason, p) => {
     console.log('Unhandled Rejection at:', p, 'reason:', reason);
@@ -22,6 +24,9 @@ let startday = moment().subtract(15, 'days').format('YYYY-MM-DD');
 
 StockMgr.singleton.init().then(() => {
     startStockListCrawler();
+    // addAllStockPriceMCrawler('jQuery1112040217566662998494');
+    addAllStockPriceDCrawler('jQuery1112040217566662998494');
+
     CrawlerMgr.singleton.start(true, true, async () => {
         await StockMgr.singleton.saveStockBase();
     }, true);
