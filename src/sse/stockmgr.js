@@ -2,12 +2,13 @@
 
 const util = require('util');
 const fs = require('fs');
-const mysql = require('mysql2/promise');
+// const mysql = require('mysql2/promise');
 const moment = require('moment');
 // const { addStockPriceMCrawler } = require('./stockpricem');
+const { CrawlerMgr } = require('crawlercore');
 
-const mysqlcfg = JSON.parse(fs.readFileSync('./mysqlcfg_hfdb.json').toString());
-mysqlcfg.multipleStatements = true;
+// const mysqlcfg = JSON.parse(fs.readFileSync('./mysqlcfg_hfdb.json').toString());
+// mysqlcfg.multipleStatements = true;
 
 const SQL_BATCH_NUMS = 1024;
 
@@ -15,25 +16,33 @@ class StockMgr{
     constructor() {
         this.mapStock = {};
 
-        this.conn = undefined;
+        // this.conn = undefined;
 
         this.mapStockWaiting = {};
+
+        this.mysqlid = undefined;
     }
 
     async loadStockBase() {
+        let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
+
         let str = util.format("select * from ssestock");
-        let [rows, fields] = await this.conn.query(str);
+        let [rows, fields] = await conn.query(str);
         for (let i = 0; i < rows.length; ++i) {
             this.addStock(rows[i].code, rows[i].cname, rows[i].ename, true);
         }
     }
 
-    async init() {
-        this.conn = await mysql.createConnection(mysqlcfg);
+    async init(mysqlid) {
+        this.mysqlid = mysqlid;
+
+        // this.conn = await mysql.createConnection(mysqlcfg);
         await this.loadStockBase();
     }
 
     async saveStockBase() {
+        let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
+
         let fullsql = '';
         let sqlnums = 0;
         for (let code in this.mapStock) {
@@ -63,7 +72,7 @@ class StockMgr{
 
                 if (sqlnums >= SQL_BATCH_NUMS) {
                     try{
-                        await this.conn.query(fullsql);
+                        await conn.query(fullsql);
                     }
                     catch(err) {
                         console.log('mysql err: ' + fullsql);
@@ -77,7 +86,7 @@ class StockMgr{
 
         if (sqlnums > 0) {
             try{
-                await this.conn.query(fullsql);
+                await conn.query(fullsql);
             }
             catch(err) {
                 console.log('mysql err: ' + fullsql);
@@ -86,26 +95,28 @@ class StockMgr{
     }
 
     async saveStockPriceM(code, lst, curday) {
+        let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
+
         let fullsql = '';
         let sqlnums = 0;
 
-        // // 绝对信任最新的数据，所以干脆先把老数据删掉
-        // for (let i = 0; i < 10; ++i) {
-        //     let sql = util.format("delete from csrcfundnet_%d where curday = '%s';", i, curday);
-        //
-        //     fullsql += sql;
-        //     ++sqlnums;
-        // }
-        //
-        // try{
-        //     await this.conn.query(fullsql);
-        // }
-        // catch(err) {
-        //     console.log('mysql err: ' + fullsql);
-        // }
-        //
-        // fullsql = '';
-        // sqlnums = 0;
+        // 绝对信任最新的数据，所以干脆先把老数据删掉
+        for (let i = 0; i < 10; ++i) {
+            let sql = util.format("delete from ssestock_price_m_%d where date(timem) = '%s';", i, curday);
+
+            fullsql += sql;
+            ++sqlnums;
+        }
+
+        try{
+            await conn.query(fullsql);
+        }
+        catch(err) {
+            console.log('mysql err: ' + fullsql);
+        }
+
+        fullsql = '';
+        sqlnums = 0;
 
         for (let i = 0; i < lst.length; ++i) {
             let cursp = lst[i];
@@ -135,7 +146,7 @@ class StockMgr{
 
             if (sqlnums > SQL_BATCH_NUMS) {
                 try {
-                    await this.conn.query(fullsql);
+                    await conn.query(fullsql);
                 }
                 catch(err) {
                     console.log('mysql err: ' + fullsql);
@@ -148,7 +159,7 @@ class StockMgr{
 
         if (sqlnums > 0) {
             try {
-                await this.conn.query(fullsql);
+                await conn.query(fullsql);
             }
             catch(err) {
                 console.log('mysql err: ' + fullsql);
@@ -159,26 +170,28 @@ class StockMgr{
     }
 
     async saveStockPriceD(code, curobj, curday) {
+        let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
+
         let fullsql = '';
         let sqlnums = 0;
 
-        // // 绝对信任最新的数据，所以干脆先把老数据删掉
-        // for (let i = 0; i < 10; ++i) {
-        //     let sql = util.format("delete from csrcfundnet_%d where curday = '%s';", i, curday);
-        //
-        //     fullsql += sql;
-        //     ++sqlnums;
-        // }
-        //
-        // try{
-        //     await this.conn.query(fullsql);
-        // }
-        // catch(err) {
-        //     console.log('mysql err: ' + fullsql);
-        // }
-        //
-        // fullsql = '';
-        // sqlnums = 0;
+        // 绝对信任最新的数据，所以干脆先把老数据删掉
+        for (let i = 0; i < 10; ++i) {
+            let sql = util.format("delete from ssestock_price_d_%d where date(curday) = '%s';", i, curday);
+
+            fullsql += sql;
+            ++sqlnums;
+        }
+
+        try{
+            await conn.query(fullsql);
+        }
+        catch(err) {
+            console.log('mysql err: ' + fullsql);
+        }
+
+        fullsql = '';
+        sqlnums = 0;
 
 
         let str0 = '';
@@ -205,7 +218,7 @@ class StockMgr{
 
         try {
             // console.log(sql);
-            await this.conn.query(sql);
+            await conn.query(sql);
         }
         catch(err) {
             console.log('mysql err: ' + sql);

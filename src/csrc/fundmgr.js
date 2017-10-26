@@ -2,11 +2,11 @@
 
 const util = require('util');
 const fs = require('fs');
-const mysql = require('mysql2/promise');
 const moment = require('moment');
+const { CrawlerMgr } = require('crawlercore');
 
-const mysqlcfg = JSON.parse(fs.readFileSync('./mysqlcfg_hfdb.json').toString());
-mysqlcfg.multipleStatements = true;
+// const mysqlcfg = JSON.parse(fs.readFileSync('./mysqlcfg_hfdb.json').toString());
+// mysqlcfg.multipleStatements = true;
 
 const SQL_BATCH_NUMS = 1024;
 
@@ -14,26 +14,34 @@ class FundMgr{
     constructor() {
         this.mapFund = {};
 
-        this.conn = undefined;
+        // this.conn = undefined;
 
         this.mapFundWaiting = {};
+
+        this.mysqlid = undefined;
     }
 
     async loadFundBase() {
+        let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
+
         let str = util.format("select * from csrcfund");
-        let [rows, fields] = await this.conn.query(str);
+        let [rows, fields] = await conn.query(str);
         for (let i = 0; i < rows.length; ++i) {
             this.addFund(rows[i].code, rows[i].name, rows[i].uri, rows[i].company, rows[i].acttype, rows[i].fundtype,
                 rows[i].trustee, moment(rows[i].startday).format('YYYY-MM-DD'), rows[i].endday, true);
         }
     }
 
-    async init() {
-        this.conn = await mysql.createConnection(mysqlcfg);
+    async init(mysqlid) {
+        this.mysqlid = mysqlid;
+
+        // this.conn = await createMysql2(mysqlcfg);
         await this.loadFundBase();
     }
 
     async saveFundBase() {
+        let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
+
         let fullsql = '';
         let sqlnums = 0;
         for (let code in this.mapFund) {
@@ -63,7 +71,7 @@ class FundMgr{
 
                 if (sqlnums >= SQL_BATCH_NUMS) {
                     try{
-                        await this.conn.query(fullsql);
+                        await conn.query(fullsql);
                     }
                     catch(err) {
                         console.log('mysql err: ' + fullsql);
@@ -77,7 +85,7 @@ class FundMgr{
 
         if (sqlnums > 0) {
             try{
-                await this.conn.query(fullsql);
+                await conn.query(fullsql);
             }
             catch(err) {
                 console.log('mysql err: ' + fullsql);
@@ -86,6 +94,8 @@ class FundMgr{
     }
 
     async saveFundNet(map, curday) {
+        let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
+
         let fullsql = '';
         let sqlnums = 0;
 
@@ -98,7 +108,7 @@ class FundMgr{
         }
 
         try{
-            await this.conn.query(fullsql);
+            await conn.query(fullsql);
         }
         catch(err) {
             console.log('mysql err: ' + fullsql);
@@ -146,7 +156,7 @@ class FundMgr{
 
             if (sqlnums > SQL_BATCH_NUMS) {
                 try {
-                    await this.conn.query(fullsql);
+                    await conn.query(fullsql);
                 }
                 catch(err) {
                     console.log('mysql err: ' + fullsql);
@@ -159,7 +169,7 @@ class FundMgr{
 
         if (sqlnums > 0) {
             try {
-                await this.conn.query(fullsql);
+                await conn.query(fullsql);
             }
             catch(err) {
                 console.log('mysql err: ' + fullsql);
