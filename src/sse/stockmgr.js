@@ -94,29 +94,45 @@ class StockMgr{
         }
     }
 
+    async delStockPriceM(curday) {
+        let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
+
+        // 绝对信任最新的数据，所以干脆先把老数据删掉
+        for (let i = 0; i < 10; ++i) {
+            let sql = util.format("delete from ssestock_price_m_%d where date(timem) = '%s';", i, curday);
+
+            try{
+                await conn.query(sql);
+            }
+            catch(err) {
+                console.log('mysql err: ' + sql);
+            }
+        }
+    }
+
     async saveStockPriceM(code, lst, curday) {
         let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
 
         let fullsql = '';
         let sqlnums = 0;
 
-        // 绝对信任最新的数据，所以干脆先把老数据删掉
-        for (let i = 0; i < 10; ++i) {
-            let sql = util.format("delete from ssestock_price_m_%d where date(timem) = '%s';", i, curday);
-
-            fullsql += sql;
-            ++sqlnums;
-        }
-
-        try{
-            await conn.query(fullsql);
-        }
-        catch(err) {
-            console.log('mysql err: ' + fullsql);
-        }
-
-        fullsql = '';
-        sqlnums = 0;
+        // // 绝对信任最新的数据，所以干脆先把老数据删掉
+        // for (let i = 0; i < 10; ++i) {
+        //     let sql = util.format("delete from ssestock_price_m_%d where date(timem) = '%s';", i, curday);
+        //
+        //     fullsql += sql;
+        //     ++sqlnums;
+        // }
+        //
+        // try{
+        //     await conn.query(fullsql);
+        // }
+        // catch(err) {
+        //     console.log('mysql err: ' + fullsql);
+        // }
+        //
+        // fullsql = '';
+        // sqlnums = 0;
 
         for (let i = 0; i < lst.length; ++i) {
             let cursp = lst[i];
@@ -169,29 +185,58 @@ class StockMgr{
         return true;
     }
 
+    async delStockPriceD(curday) {
+        let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
+
+        // let fullsql = '';
+        // let sqlnums = 0;
+
+        // 绝对信任最新的数据，所以干脆先把老数据删掉
+        for (let i = 0; i < 10; ++i) {
+            let sql = util.format("delete from ssestock_price_d_%d where date(timed) = '%s';", i, curday);
+
+            try{
+                await conn.query(sql);
+            }
+            catch(err) {
+                console.log('mysql err: ' + sql);
+            }
+        }
+
+        // try{
+        //     await conn.query(fullsql);
+        // }
+        // catch(err) {
+        //     console.log('mysql err: ' + fullsql);
+        // }
+        //
+        // fullsql = '';
+        // sqlnums = 0;
+    }
+
     async saveStockPriceD(code, curobj, curday) {
         let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
 
         let fullsql = '';
         let sqlnums = 0;
 
-        // 绝对信任最新的数据，所以干脆先把老数据删掉
-        for (let i = 0; i < 10; ++i) {
-            let sql = util.format("delete from ssestock_price_d_%d where date(curday) = '%s';", i, curday);
-
-            fullsql += sql;
-            ++sqlnums;
-        }
-
-        try{
-            await conn.query(fullsql);
-        }
-        catch(err) {
-            console.log('mysql err: ' + fullsql);
-        }
-
-        fullsql = '';
-        sqlnums = 0;
+        // // 绝对信任最新的数据，所以干脆先把老数据删掉
+        // for (let i = 0; i < 10; ++i) {
+        //     let sql = util.format("delete from ssestock_price_d_%d where date(curday) = '%s';", i, curday);
+        //
+        //     fullsql += sql;
+        //     ++sqlnums;
+        // }
+        //
+        // try{
+        //     await conn.query(fullsql);
+        // }
+        // catch(err) {
+        //     console.log('mysql err: ' + fullsql);
+        // }
+        //
+        // fullsql = '';
+        // sqlnums = 0;
 
 
         let str0 = '';

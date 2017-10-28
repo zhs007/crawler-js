@@ -6,6 +6,8 @@ let moment = require('moment');
 let util = require('util');
 let {startStockListJSCrawler} = require('./stocklistjs');
 
+const OPTIONS_TYPENAME = 'sse_stocklist';
+
 // 分析数据
 async function func_analysis(crawler) {
     crawler.da.data('script').each((index, element) => {
@@ -21,7 +23,16 @@ async function func_analysis(crawler) {
     return crawler;
 }
 
+// function func_getcache(options) {
+//     return CrawlerMgr.singleton.getOptionsCache_default(options);
+// }
+//
+// function func_setcache(options, cache) {
+//     CrawlerMgr.singleton.setOptionsCache_default(options, cache);
+// }
+
 let stocklistOptions = {
+    typename: OPTIONS_TYPENAME,
     // 主地址
     uri: 'http://www.sse.com.cn/assortment/stock/list/share/',
     timeout: 30 * 1000,
@@ -43,3 +54,8 @@ function startStockListCrawler() {
 
 exports.stocklistOptions = stocklistOptions;
 exports.startStockListCrawler = startStockListCrawler;
+
+CrawlerMgr.singleton.regOptions(OPTIONS_TYPENAME, () => {
+    let options = Object.assign({}, stocklistOptions);
+    return options;
+});

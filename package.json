@@ -4,7 +4,7 @@
   "description": "crawler js",
   "main": "./bin/crawler.js",
   "dependencies": {
-    "crawlercore": "^1.1.15"
+    "crawlercore": "^1.1.16"
   },
   "scripts": {
     "start": "node ./bin/crawler.js"
