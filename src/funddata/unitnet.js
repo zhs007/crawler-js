@@ -62,7 +62,7 @@ class FundUintNetMgr{
         let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
 
         for (let i = 0; i < 10; ++i) {
-            let sql = util.format("select distinct(%s) as timed from %s%d where date(%s) >= '%s' and date(%s) < '%s'", this.cfg.datename, this.cfg.tablename, i, this.cfg.datename, startday, this.cfg.datename, endday);
+            let sql = util.format("select distinct(%s) as timed from %s%d where date(%s) >= '%s' and date(%s) <= '%s'", this.cfg.datename, this.cfg.tablename, i, this.cfg.datename, startday, this.cfg.datename, endday);
 
             try{
                 let [rows, fields] = await conn.query(sql);
@@ -164,7 +164,7 @@ class FundUintNetMgr{
 
         let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
 
-        let sql = util.format("select %s as code, %s as timed, %s as unitnet from %s%d where date(%s) >= '%s' and date(%s) < '%s' and %s = '%s' order by %s;",
+        let sql = util.format("select %s as code, %s as timed, %s as unitnet from %s%d where date(%s) >= '%s' and date(%s) <= '%s' and %s = '%s' order by %s;",
             this.cfg.codename, this.cfg.datename, this.cfg.unitnetname, this.cfg.tablename, ti, this.cfg.datename, startday, this.cfg.datename, endday, this.cfg.codename, code, this.cfg.datename);
 
         try{
@@ -180,7 +180,7 @@ class FundUintNetMgr{
         let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
 
         for (let i = 0; i < 10; ++i) {
-            let sql = util.format("select distinct(%s) as code from %s%d where date(%s) >= '%s' and date(%s) < '%s';", this.cfg.codename, this.cfg.tablename, i, this.cfg.datename, startday, this.cfg.datename, endday);
+            let sql = util.format("select distinct(%s) as code from %s%d where date(%s) >= '%s' and date(%s) <= '%s';", this.cfg.codename, this.cfg.tablename, i, this.cfg.datename, startday, this.cfg.datename, endday);
 
             try{
                 let [rows, fields] = await conn.query(sql);

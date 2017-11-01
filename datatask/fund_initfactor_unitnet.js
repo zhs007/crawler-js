@@ -27,7 +27,8 @@ CrawlerMgr.singleton.processCrawlerNums = 8;
 CrawlerMgr.singleton.processDelayTime = 0.3;
 
 let endday = moment().format('YYYY-MM-DD');
-let startday = '2009-01-01';
+let startday = moment().subtract(15, 'days').format('YYYY-MM-DD');
+// let startday = '2009-01-01';
 let startday_unitnet = moment(startday, 'YYYY-MM-DD').subtract(30, 'days').format('YYYY-MM-DD');
 
 let cfg = {
@@ -39,7 +40,7 @@ let cfg = {
 
 CrawlerMgr.singleton.init().then(async () => {
     await FundUintNetMgr.singleton.init(MYSQLID_HFDB, cfg);
-    // await FundUintNetMgr.singleton.initFactor_unitnet(startday, endday);
+    await FundUintNetMgr.singleton.initFactor_unitnet(startday, endday);
     await FundUintNetMgr.singleton.calculateFactor_unitnet(startday_unitnet, endday);
 
     process.exit();
