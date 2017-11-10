@@ -154,7 +154,7 @@ class StockMgr{
                 }
             }
 
-            let tname = 'ssestock_price_m_' + code.charAt(5);
+            let tname = 'sinastock_m_' + code.charAt(5);
             let sql = util.format("insert into %s(%s) values(%s);", tname, str0, str1);
 
             fullsql += sql;

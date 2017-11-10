@@ -2,6 +2,7 @@
 
 let { CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE, CRAWLERCACHE, getVal_CDPCallFrame, HeadlessChromeMgr } = require('crawlercore');
 let util = require('util');
+let { StockMgr } = require('./stockmgr');
 
 const OPTIONS_TYPENAME = 'sina_stocktoday';
 
@@ -13,6 +14,22 @@ async function func_analysis(crawler) {
 
         let obj = await getVal_CDPCallFrame('h', params.callFrames, Runtime);
         console.log('headlesschrome2 ' + JSON.stringify(obj));
+
+        let curday = obj.data.td1[0].today;
+        let lst = [];
+        for (let i = 0; i <= 240; ++i) {
+            let co = {
+                code: crawler.options.code,
+                price: obj.data.td1[i].price * 10000,
+                avg_price: obj.data.td1[i].avg_price * 10000,
+                valume: obj.data.td1[i].valume * 10000,
+                timem: curday + ' ' + obj.data.td1[i].time
+            };
+
+            lst.push(co);
+        }
+
+        StockMgr.singleton.saveStockPriceM(crawler.options.code, lst, curday);
 
         Debugger.resume();
         crawler.client.close();
@@ -74,6 +91,7 @@ function startStockToday2Crawler(code, hcname) {
     let op = Object.assign({}, headlesschrome2Options);
     op.uri = util.format('http://quotes.sina.cn/hs/company/quotes/view/%s/?from=wap', code);
     op.headlesschromename = hcname;
+    op.code = code.substr(code.length - 6, 6);
     CrawlerMgr.singleton.addCrawler(op);
 }
 
