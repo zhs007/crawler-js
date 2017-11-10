@@ -3,11 +3,19 @@
 let process = require('process');
 let moment = require('moment');
 let fs = require('fs');
-let { CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE, CRAWLERCACHE } = require('crawlercore');
-let { startStockListCrawler } = require('../src/sse/stocklist');
-let { addAllStockPriceMCrawler } = require('../src/sse/stockpricem');
-let { addAllStockPriceDCrawler } = require('../src/sse/stockpriced');
-let { StockMgr } = require('../src/sse/stockmgr');
+let { CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE, CRAWLERCACHE, getVal_CDPCallFrame, HeadlessChromeMgr } = require('crawlercore');
+let util = require('util');
+let { startStockToday2Crawler } = require('../src/sinafinance/stocktoday');
+let { StockMgr } = require('../src/sinafinance/stockmgr');
+
+const HEADLESSCHROME_NAME = 'hc';
+const HEADLESSCHROME_OPTION = {
+    port: 9222,
+    autoSelectChrome: true,
+    additionalFlags: ['--window-size=1136,640', '--disable-gpu', '--headless']
+};
+
+HeadlessChromeMgr.singleton.addHeadlessChrome(HEADLESSCHROME_NAME, HEADLESSCHROME_OPTION);
 
 const rediscfg = JSON.parse(fs.readFileSync('./rediscfg_hfdb.json').toString());
 const REDISID_CACHE = 'cache';
@@ -23,7 +31,6 @@ CrawlerMgr.singleton.addMysqlCfg(MYSQLID_HFDB, mysqlcfg);
 
 process.on('unhandledRejection', (reason, p) => {
     console.log('Unhandled Rejection at:', p, 'reason:', reason);
-    // application specific logging, throwing an error, or other logic here
 });
 
 CrawlerMgr.singleton.processCrawlerNums = 8;
@@ -37,16 +44,18 @@ let curday = moment().format('YYYY-MM-DD');
 
 CrawlerMgr.singleton.init().then(() => {
     StockMgr.singleton.init(MYSQLID_HFDB).then(async () => {
-         // startStockListCrawler();
 
-        await StockMgr.singleton.delStockPriceD(curday);
-        await StockMgr.singleton.delStockPriceM(curday);
+        startStockToday2Crawler('sh600000', HEADLESSCHROME_NAME);
+        // startStockListCrawler();
 
-        addAllStockPriceMCrawler('jQuery1112040217566662998494');
-        addAllStockPriceDCrawler('jQuery1112040217566662998494');
+        // await StockMgr.singleton.delStockPriceD(curday);
+        // await StockMgr.singleton.delStockPriceM(curday);
+        //
+        // addAllStockPriceMCrawler('jQuery1112040217566662998494');
+        // addAllStockPriceDCrawler('jQuery1112040217566662998494');
 
         CrawlerMgr.singleton.start(true, true, async () => {
-            await StockMgr.singleton.saveStockBase();
+            // await StockMgr.singleton.saveStockBase();
         }, true);
     });
 });
