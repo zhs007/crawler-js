@@ -15,9 +15,6 @@ const SQL_BATCH_NUMS = 1024;
 class StockMgr{
     constructor() {
         this.mapStock = {};
-
-        // this.conn = undefined;
-
         this.mapStockWaiting = {};
 
         this.mysqlid = undefined;
@@ -26,10 +23,10 @@ class StockMgr{
     async loadStockBase() {
         let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
 
-        let str = util.format("select * from ssestock");
+        let str = util.format("select * from xqstock");
         let [rows, fields] = await conn.query(str);
         for (let i = 0; i < rows.length; ++i) {
-            this.addStock(rows[i].code, rows[i].cname, rows[i].ename, true);
+            this.addStock(rows[i].code, rows[i].cname, rows[i].bourse, true);
         }
     }
 
@@ -66,7 +63,7 @@ class StockMgr{
                     }
                 }
 
-                let sql = util.format("insert into ssestock(%s) values(%s);", str0, str1);
+                let sql = util.format("insert into xqstock(%s) values(%s);", str0, str1);
                 fullsql += sql;
                 ++sqlnums;
 
@@ -115,24 +112,6 @@ class StockMgr{
 
         let fullsql = '';
         let sqlnums = 0;
-
-        // // 绝对信任最新的数据，所以干脆先把老数据删掉
-        // for (let i = 0; i < 10; ++i) {
-        //     let sql = util.format("delete from ssestock_price_m_%d where date(timem) = '%s';", i, curday);
-        //
-        //     fullsql += sql;
-        //     ++sqlnums;
-        // }
-        //
-        // try{
-        //     await conn.query(fullsql);
-        // }
-        // catch(err) {
-        //     console.log('mysql err: ' + fullsql);
-        // }
-        //
-        // fullsql = '';
-        // sqlnums = 0;
 
         for (let i = 0; i < lst.length; ++i) {
             let cursp = lst[i];
@@ -292,11 +271,11 @@ class StockMgr{
         return true;
     }
 
-    addStock(code, cname, ename, indb) {
+    addStock(code, cname, bourse, indb) {
         let s = {
             code: code,
             cname: cname,
-            ename: ename,
+            bourse: bourse,
             indb: indb
         };
 

@@ -32,7 +32,7 @@ async function func_analysis(crawler) {
         StockMgr.singleton.saveStockPriceM(crawler.options.code, lst, curday);
 
         Debugger.resume();
-        crawler.client.close();
+        // crawler.client.close();
         // crawler.launcher.kill();
     });
 
@@ -66,6 +66,8 @@ async function func_analysis(crawler) {
     await Page.navigate({url: crawler.options.uri});
     await Page.loadEventFired();
 
+    HeadlessChromeMgr.singleton.closeTab(crawler.client);
+
     return crawler;
 }
 
@@ -95,9 +97,25 @@ function startStockToday2Crawler(code, hcname) {
     CrawlerMgr.singleton.addCrawler(op);
 }
 
+function startAllStockToday2Crawler(hcname) {
+    for (let code in StockMgr.singleton.mapStock) {
+        if (code.charAt(0) == '0' && code.charAt(1) == '9') {
+            continue;
+        }
+
+        if (code.charAt(0) == '1' && code.charAt(1) == '0') {
+            continue;
+        }
+
+        let fcode = StockMgr.singleton.mapStock[code].bourse.toLowerCase() + code;
+        startStockToday2Crawler(fcode, hcname);
+    }
+}
+
 CrawlerMgr.singleton.regOptions(OPTIONS_TYPENAME, () => {
     let options = Object.assign({}, headlesschrome2Options);
     return options;
 });
 
 exports.startStockToday2Crawler = startStockToday2Crawler;
+exports.startAllStockToday2Crawler = startAllStockToday2Crawler;

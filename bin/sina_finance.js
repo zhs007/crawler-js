@@ -5,7 +5,8 @@ let moment = require('moment');
 let fs = require('fs');
 let { CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE, CRAWLERCACHE, getVal_CDPCallFrame, HeadlessChromeMgr } = require('crawlercore');
 let util = require('util');
-let { startStockToday2Crawler } = require('../src/sinafinance/stocktoday');
+let { startAllStockToday2Crawler } = require('../src/sinafinance/stocktoday');
+let { startStockListCrawler } = require('../src/sinafinance/xueqiustacklist');
 let { StockMgr } = require('../src/sinafinance/stockmgr');
 
 const HEADLESSCHROME_NAME = 'hc';
@@ -45,7 +46,12 @@ let curday = moment().format('YYYY-MM-DD');
 CrawlerMgr.singleton.init().then(() => {
     StockMgr.singleton.init(MYSQLID_HFDB).then(async () => {
 
-        startStockToday2Crawler('sh600000', HEADLESSCHROME_NAME);
+        await HeadlessChromeMgr.singleton.getHeadlessChrome(HEADLESSCHROME_NAME);
+
+        // startStockListCrawler(1, HEADLESSCHROME_NAME);
+
+        startAllStockToday2Crawler(HEADLESSCHROME_NAME);
+        // startStockToday2Crawler('sh600000', HEADLESSCHROME_NAME);
         // startStockListCrawler();
 
         // await StockMgr.singleton.delStockPriceD(curday);
