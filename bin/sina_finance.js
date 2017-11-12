@@ -8,6 +8,7 @@ let util = require('util');
 let { startAllStockToday2Crawler } = require('../src/sinafinance/stocktoday');
 let { startStockListCrawler } = require('../src/sinafinance/xueqiustacklist');
 let { StockMgr } = require('../src/sinafinance/stockmgr');
+let { startJYMXCrawler } = require('../src/sinafinance/sinajymy');
 
 const HEADLESSCHROME_NAME = 'hc';
 const HEADLESSCHROME_OPTION = {
@@ -50,15 +51,9 @@ CrawlerMgr.singleton.init().then(() => {
 
         // startStockListCrawler(1, HEADLESSCHROME_NAME);
 
-        startAllStockToday2Crawler(HEADLESSCHROME_NAME);
-        // startStockToday2Crawler('sh600000', HEADLESSCHROME_NAME);
-        // startStockListCrawler();
+        // startAllStockToday2Crawler(HEADLESSCHROME_NAME);
 
-        // await StockMgr.singleton.delStockPriceD(curday);
-        // await StockMgr.singleton.delStockPriceM(curday);
-        //
-        // addAllStockPriceMCrawler('jQuery1112040217566662998494');
-        // addAllStockPriceDCrawler('jQuery1112040217566662998494');
+        startJYMXCrawler('600000', HEADLESSCHROME_NAME);
 
         CrawlerMgr.singleton.start(true, true, async () => {
             // await StockMgr.singleton.saveStockBase();
