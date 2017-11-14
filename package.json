@@ -4,7 +4,8 @@
   "description": "crawler js",
   "main": "./bin/crawler.js",
   "dependencies": {
-    "crawlercore": "^1.2.22"
+    "crawlercore": "^1.2.23",
+    "iconv-lite": "^0.4.19"
   },
   "scripts": {
     "start": "node ./bin/crawler.js"

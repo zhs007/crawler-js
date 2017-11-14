@@ -17,16 +17,28 @@ class StockMgr{
         this.mapStock = {};
         this.mapStockWaiting = {};
 
+        this.lstStockToday = [];
+
         this.mysqlid = undefined;
     }
 
     async loadStockBase() {
         let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
 
-        let str = util.format("select * from xqstock");
-        let [rows, fields] = await conn.query(str);
-        for (let i = 0; i < rows.length; ++i) {
-            this.addStock(rows[i].code, rows[i].cname, rows[i].bourse, true);
+        {
+            let str = util.format("select * from ssestock");
+            let [rows, fields] = await conn.query(str);
+            for (let i = 0; i < rows.length; ++i) {
+                this.addStock(rows[i].code, rows[i].cname, 'sh', true);
+            }
+        }
+
+        {
+            let str = util.format("select * from szsestock");
+            let [rows, fields] = await conn.query(str);
+            for (let i = 0; i < rows.length; ++i) {
+                this.addStock(rows[i].code, rows[i].name, 'sz', true);
+            }
         }
     }
 
@@ -96,7 +108,7 @@ class StockMgr{
 
         // 绝对信任最新的数据，所以干脆先把老数据删掉
         for (let i = 0; i < 10; ++i) {
-            let sql = util.format("delete from ssestock_price_m_%d where date(timem) = '%s';", i, curday);
+            let sql = util.format("delete from sinastock_m_%d where date(timem) = '%s';", i, curday);
 
             try{
                 await conn.query(sql);
@@ -172,7 +184,7 @@ class StockMgr{
 
         // 绝对信任最新的数据，所以干脆先把老数据删掉
         for (let i = 0; i < 10; ++i) {
-            let sql = util.format("delete from ssestock_price_d_%d where date(timed) = '%s';", i, curday);
+            let sql = util.format("delete from sinastockprice_d_%d where date(timed) = '%s';", i, curday);
 
             try{
                 await conn.query(sql);
@@ -236,7 +248,7 @@ class StockMgr{
             }
         }
 
-        let tname = 'ssestock_price_d_' + code.charAt(5);
+        let tname = 'sinastockprice_d_' + code.charAt(5);
         let sql = util.format("insert into %s(%s) values(%s);", tname, str0, str1);
 
 
@@ -280,6 +292,40 @@ class StockMgr{
         };
 
         this.mapStock[code] = s;
+    }
+
+    getFullCode(code) {
+        if (this.mapStock.hasOwnProperty(code)) {
+            return this.mapStock[code].bourse + this.mapStock[code].code;
+        }
+
+        return code;
+    }
+
+    async getTodayStock() {
+        let lst = [];
+        let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
+
+        for (let i = 0; i < 10; ++i) {
+            let sql = util.format('select distinct(code) as code from sinastock_m_%d', i);
+            let [rows, fields] = await conn.query(sql);
+            for (let i = 0; i < rows.length; ++i) {
+                lst.push(rows[i].code);
+            }
+        }
+
+        return lst;
+    }
+
+    reselectStock(lst) {
+        let rlst = [];
+        for (let code in this.mapStock) {
+            if (lst.indexOf(code) < 0) {
+                rlst.push(code);
+            }
+        }
+
+        return rlst;
     }
 }
 

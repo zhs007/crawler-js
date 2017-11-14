@@ -22,9 +22,13 @@ async function func_analysis(crawler) {
                 code: crawler.options.code,
                 price: obj.data.td1[i].price * 10000,
                 avg_price: obj.data.td1[i].avg_price * 10000,
-                valume: obj.data.td1[i].valume * 10000,
+                volume: obj.data.td1[i].volume * 10000,
                 timem: curday + ' ' + obj.data.td1[i].time
             };
+
+            if (isNaN(co.avg_price)) {
+                co.avg_price = 0;
+            }
 
             lst.push(co);
         }
@@ -32,6 +36,9 @@ async function func_analysis(crawler) {
         StockMgr.singleton.saveStockPriceM(crawler.options.code, lst, curday);
 
         Debugger.resume();
+
+        crawler.options.isok = true;
+
         // crawler.client.close();
         // crawler.launcher.kill();
     });
@@ -66,7 +73,14 @@ async function func_analysis(crawler) {
     await Page.navigate({url: crawler.options.uri});
     await Page.loadEventFired();
 
-    HeadlessChromeMgr.singleton.closeTab(crawler.client);
+    setTimeout(() => {
+        HeadlessChromeMgr.singleton.closeTab(crawler.client);
+
+        if (!crawler.options.isok) {
+            startStockToday2Crawler(StockMgr.singleton.getFullCode(crawler.options.code, crawler.options.headlesschromename));
+            // StockMgr.singleton.lstStockToday.push(crawler.options.uri);
+        }
+    }, 1000);
 
     return crawler;
 }
@@ -86,7 +100,9 @@ let headlesschrome2Options = {
     // 分析数据
     func_analysis: func_analysis,
 
-    headlesschromename: ''
+    headlesschromename: '',
+
+    isok: false
 };
 
 function startStockToday2Crawler(code, hcname) {
@@ -99,16 +115,22 @@ function startStockToday2Crawler(code, hcname) {
 
 function startAllStockToday2Crawler(hcname) {
     for (let code in StockMgr.singleton.mapStock) {
-        if (code.charAt(0) == '0' && code.charAt(1) == '9') {
-            continue;
-        }
-
-        if (code.charAt(0) == '1' && code.charAt(1) == '0') {
-            continue;
-        }
+        // if (code.charAt(0) == '0' && code.charAt(1) == '9') {
+        //     continue;
+        // }
+        //
+        // if (code.charAt(0) == '1' && code.charAt(1) == '0') {
+        //     continue;
+        // }
 
         let fcode = StockMgr.singleton.mapStock[code].bourse.toLowerCase() + code;
         startStockToday2Crawler(fcode, hcname);
+    }
+}
+
+function startStockToday2Crawler_List(lst, hcname) {
+    for (let i = 0; i < lst.length; ++i) {
+        startStockToday2Crawler(StockMgr.singleton.getFullCode(lst[i]), hcname);
     }
 }
 
@@ -119,3 +141,4 @@ CrawlerMgr.singleton.regOptions(OPTIONS_TYPENAME, () => {
 
 exports.startStockToday2Crawler = startStockToday2Crawler;
 exports.startAllStockToday2Crawler = startAllStockToday2Crawler;
+exports.startStockToday2Crawler_List = startStockToday2Crawler_List;

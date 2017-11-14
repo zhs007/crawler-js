@@ -5,10 +5,10 @@ let moment = require('moment');
 let fs = require('fs');
 let { CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE, CRAWLERCACHE, getVal_CDPCallFrame, HeadlessChromeMgr } = require('crawlercore');
 let util = require('util');
-let { startAllStockToday2Crawler } = require('../src/sinafinance/stocktoday');
+let { startAllStockToday2Crawler, startStockToday2Crawler_List } = require('../src/sinafinance/stocktoday');
 let { startStockListCrawler } = require('../src/sinafinance/xueqiustacklist');
 let { StockMgr } = require('../src/sinafinance/stockmgr');
-let { startJYMXCrawler } = require('../src/sinafinance/sinajymy');
+let { startJYMX2Crawler } = require('../src/sinafinance/sinajymx2');
 
 const HEADLESSCHROME_NAME = 'hc';
 const HEADLESSCHROME_OPTION = {
@@ -35,8 +35,8 @@ process.on('unhandledRejection', (reason, p) => {
     console.log('Unhandled Rejection at:', p, 'reason:', reason);
 });
 
-CrawlerMgr.singleton.processCrawlerNums = 8;
-CrawlerMgr.singleton.processDelayTime = 0.3;
+CrawlerMgr.singleton.processCrawlerNums = 1;
+CrawlerMgr.singleton.processDelayTime = 2;
 
 let curday = moment().format('YYYY-MM-DD');
 // let startday = moment().subtract(15, 'days').format('YYYY-MM-DD');
@@ -51,12 +51,20 @@ CrawlerMgr.singleton.init().then(() => {
 
         // startStockListCrawler(1, HEADLESSCHROME_NAME);
 
+        // await StockMgr.singleton.delStockPriceM(curday);
         // startAllStockToday2Crawler(HEADLESSCHROME_NAME);
 
-        startJYMXCrawler('600000', HEADLESSCHROME_NAME);
+        let lst = await StockMgr.singleton.getTodayStock();
+        let rlst = StockMgr.singleton.reselectStock(lst);
+        startStockToday2Crawler_List(rlst, HEADLESSCHROME_NAME);
+
+        // await startJYMX2Crawler('sh600000', '2005-01-01', '2017-11-12', HEADLESSCHROME_NAME);
 
         CrawlerMgr.singleton.start(true, true, async () => {
             // await StockMgr.singleton.saveStockBase();
+
+            console.log(StockMgr.singleton.lstStockToday);
+
         }, true);
     });
 });
