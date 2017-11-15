@@ -205,7 +205,7 @@ class StockMgr{
         // sqlnums = 0;
     }
 
-    async saveStockPriceD(code, curobj, curday) {
+    async saveStockPriceD(code, lst) {
         let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
 
         let fullsql = '';
@@ -213,7 +213,7 @@ class StockMgr{
 
         // // 绝对信任最新的数据，所以干脆先把老数据删掉
         // for (let i = 0; i < 10; ++i) {
-        //     let sql = util.format("delete from ssestock_price_d_%d where date(curday) = '%s';", i, curday);
+        //     let sql = util.format("delete from ssestock_price_m_%d where date(timem) = '%s';", i, curday);
         //
         //     fullsql += sql;
         //     ++sqlnums;
@@ -229,35 +229,52 @@ class StockMgr{
         // fullsql = '';
         // sqlnums = 0;
 
+        for (let i = 0; i < lst.length; ++i) {
+            let cursp = lst[i];
+            let str0 = '';
+            let str1 = '';
 
-        let str0 = '';
-        let str1 = '';
+            let j = 0;
+            for (let key in cursp) {
+                if (cursp[key] != undefined) {
+                    if (j != 0) {
+                        str0 += ', ';
+                        str1 += ', ';
+                    }
 
-        let j = 0;
-        for (let key in curobj) {
-            if (curobj[key] != undefined) {
-                if (j != 0) {
-                    str0 += ', ';
-                    str1 += ', ';
+                    str0 += '`' + key + '`';
+                    str1 += "'" + cursp[key] + "'";
+
+                    ++j;
+                }
+            }
+
+            let tname = 'sinastockprice_d_' + code.charAt(5);
+            let sql = util.format("insert into %s(%s) values(%s);", tname, str0, str1);
+
+            fullsql += sql;
+            ++sqlnums;
+
+            if (sqlnums > SQL_BATCH_NUMS) {
+                try {
+                    await conn.query(fullsql);
+                }
+                catch(err) {
+                    console.log('mysql err: ' + fullsql);
                 }
 
-                str0 += '`' + key + '`';
-                str1 += "'" + curobj[key] + "'";
-
-                ++j;
+                fullsql = '';
+                sqlnums = 0;
             }
         }
 
-        let tname = 'sinastockprice_d_' + code.charAt(5);
-        let sql = util.format("insert into %s(%s) values(%s);", tname, str0, str1);
-
-
-        try {
-            // console.log(sql);
-            await conn.query(sql);
-        }
-        catch(err) {
-            console.log('mysql err: ' + sql);
+        if (sqlnums > 0) {
+            try {
+                await conn.query(fullsql);
+            }
+            catch(err) {
+                console.log('mysql err: ' + fullsql);
+            }
         }
 
         return true;
