@@ -48,7 +48,7 @@ let curday = moment().format('YYYY-MM-DD');
 CrawlerMgr.singleton.init().then(() => {
     StockMgr.singleton.init(MYSQLID_HFDB).then(async () => {
 
-        await HeadlessChromeMgr.singleton.getHeadlessChrome(HEADLESSCHROME_NAME);
+        // await HeadlessChromeMgr.singleton.getHeadlessChrome(HEADLESSCHROME_NAME);
 
         // startStockListCrawler(1, HEADLESSCHROME_NAME);
 
