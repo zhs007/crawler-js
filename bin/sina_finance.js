@@ -61,7 +61,7 @@ CrawlerMgr.singleton.init().then(() => {
 
         // await startJYMX2Crawler('sh600000', '2005-01-01', '2017-11-12', HEADLESSCHROME_NAME);
 
-        await startAllStockPriceDayCrawler('2008-01-01', '2009-12-31');
+        await startAllStockPriceDayCrawler('2006-01-01', '2007-12-31');
 
         CrawlerMgr.singleton.start(true, true, async () => {
             // await StockMgr.singleton.saveStockBase();
