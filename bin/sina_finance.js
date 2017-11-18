@@ -55,13 +55,13 @@ CrawlerMgr.singleton.init().then(() => {
         // await StockMgr.singleton.delStockPriceM(curday);
         // startAllStockToday2Crawler(HEADLESSCHROME_NAME);
 
-        // let lst = await StockMgr.singleton.getTodayStock();
+        // let lst = await StockMgr.singleton.getTodayStock(curday);
         // let rlst = StockMgr.singleton.reselectStock(lst);
         // startStockToday2Crawler_List(rlst, HEADLESSCHROME_NAME);
 
         // await startJYMX2Crawler('sh600000', '2005-01-01', '2017-11-12', HEADLESSCHROME_NAME);
 
-        await startAllStockPriceDayCrawler('2010-01-01', '2011-12-31');
+        await startAllStockPriceDayCrawler('2008-01-01', '2009-12-31');
 
         CrawlerMgr.singleton.start(true, true, async () => {
             // await StockMgr.singleton.saveStockBase();

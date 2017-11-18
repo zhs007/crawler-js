@@ -319,12 +319,12 @@ class StockMgr{
         return code;
     }
 
-    async getTodayStock() {
+    async getTodayStock(curday) {
         let lst = [];
         let conn = CrawlerMgr.singleton.getMysqlConn(this.mysqlid);
 
         for (let i = 0; i < 10; ++i) {
-            let sql = util.format('select distinct(code) as code from sinastock_m_%d', i);
+            let sql = util.format('select distinct(code) as code from sinastock_m_%d where date(timem) = \'%s\';', i, curday);
             let [rows, fields] = await conn.query(sql);
             for (let i = 0; i < rows.length; ++i) {
                 lst.push(rows[i].code);
