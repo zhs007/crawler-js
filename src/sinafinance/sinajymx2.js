@@ -63,7 +63,7 @@ async function startJYMX2Crawler(code, beginday, endday) {
 async function startAllJYMX2Crawler(beginday, endday) {
     for (let code in StockMgr.singleton.mapStock) {
         let fcode = StockMgr.singleton.mapStock[code].bourse.toLowerCase() + code;
-        startJYMX2Crawler(fcode, beginday, endday);
+        await startJYMX2Crawler(fcode, beginday, endday);
     }
 }
 
