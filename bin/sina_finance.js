@@ -8,7 +8,7 @@ let util = require('util');
 let { startAllStockToday2Crawler, startStockToday2Crawler_List } = require('../src/sinafinance/stocktoday');
 let { startStockListCrawler } = require('../src/sinafinance/xueqiustacklist');
 let { StockMgr } = require('../src/sinafinance/stockmgr');
-let { startJYMX2Crawler } = require('../src/sinafinance/sinajymx2');
+let { startAllJYMX2Crawler } = require('../src/sinafinance/sinajymx2');
 let { startAllStockPriceDayCrawler } = require('../src/sinafinance/stockpriceday');
 
 const HEADLESSCHROME_NAME = 'hc';
@@ -61,7 +61,7 @@ CrawlerMgr.singleton.init().then(() => {
 
         // await startJYMX2Crawler('sh600000', '2005-01-01', '2017-11-12', HEADLESSCHROME_NAME);
 
-        await startAllStockPriceDayCrawler('1996-01-01', '1997-12-31');
+        await startAllJYMX2Crawler('2016-01-01', '2017-11-22');
 
         CrawlerMgr.singleton.start(true, true, async () => {
             // await StockMgr.singleton.saveStockBase();

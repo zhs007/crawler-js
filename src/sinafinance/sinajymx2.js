@@ -60,6 +60,13 @@ async function startJYMX2Crawler(code, beginday, endday) {
     }
 }
 
+async function startAllJYMX2Crawler(beginday, endday) {
+    for (let code in StockMgr.singleton.mapStock) {
+        let fcode = StockMgr.singleton.mapStock[code].bourse.toLowerCase() + code;
+        startJYMX2Crawler(fcode, beginday, endday);
+    }
+}
+
 // function startAllStockToday2Crawler(hcname) {
 //     for (let code in StockMgr.singleton.mapStock) {
 //         if (code.charAt(0) == '0' && code.charAt(1) == '9') {
@@ -81,4 +88,5 @@ CrawlerMgr.singleton.regOptions(OPTIONS_TYPENAME, () => {
 });
 
 exports.startJYMX2Crawler = startJYMX2Crawler;
+exports.startAllJYMX2Crawler = startAllJYMX2Crawler;
 // exports.startAllStockToday2Crawler = startAllStockToday2Crawler;
