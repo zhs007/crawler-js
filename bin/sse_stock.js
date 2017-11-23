@@ -37,13 +37,13 @@ let curday = moment().format('YYYY-MM-DD');
 
 CrawlerMgr.singleton.init().then(() => {
     StockMgr.singleton.init(MYSQLID_HFDB).then(async () => {
-         // startStockListCrawler();
+         startStockListCrawler();
 
-        await StockMgr.singleton.delStockPriceD(curday);
-        await StockMgr.singleton.delStockPriceM(curday);
-
-        addAllStockPriceMCrawler('jQuery1112040217566662998494');
-        addAllStockPriceDCrawler('jQuery1112040217566662998494');
+        // await StockMgr.singleton.delStockPriceD(curday);
+        // await StockMgr.singleton.delStockPriceM(curday);
+        //
+        // addAllStockPriceMCrawler('jQuery1112040217566662998494');
+        // addAllStockPriceDCrawler('jQuery1112040217566662998494');
 
         CrawlerMgr.singleton.start(true, true, async () => {
             await StockMgr.singleton.saveStockBase();
