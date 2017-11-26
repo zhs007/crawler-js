@@ -5,6 +5,7 @@ let util = require('util');
 let fs = require('fs');
 let moment = require('moment');
 const iconv = require('iconv-lite');
+// const csv = require('csv');
 let { StockMgr } = require('./stockmgr');
 
 const OPTIONS_TYPENAME = 'sina_jymx2';
@@ -14,7 +15,51 @@ async function func_analysis(crawler) {
 
     let str = iconv.decode(crawler.data, 'gbk');
     if (str.indexOf('<script') < 0) {
-        fs.writeFileSync(crawler.options.xlsfilename, crawler.data);
+        let lstjymx = [];
+        let lstline = str.split('\n');
+        for (let ii = 1; ii < lstline.length; ++ii) {
+            let curlst = lstline[ii].split('\t');
+            let cn = {
+                code: crawler.options.code,
+                realtime: crawler.options.curday + ' ' + curlst[0],
+                price: Math.floor(parseFloat(curlst[1]) * 10000),
+                priceoff: Math.floor(parseFloat(curlst[2]) * 10000),
+                volume: parseInt(curlst[3]),
+                realmoney: Math.floor(parseFloat(curlst[4]) * 10000),
+                panstate: 0
+            };
+
+            if (curlst[5] == '买盘') {
+                cn.panstate = 1;
+            }
+            else if (curlst[5] == '卖盘') {
+                cn.panstate = -1;
+            }
+
+            if (isNaN(cn.priceoff)) {
+                cn.priceoff = 0;
+            }
+
+            if (isNaN(cn.volume)) {
+                cn.volume = 0;
+            }
+
+            if (isNaN(cn.realmoney)) {
+                cn.realmoney = 0;
+            }
+
+            lstjymx.push(cn);
+        }
+
+        await StockMgr.singleton.saveJYMX(crawler.options.curyear, crawler.options.code, lstjymx);
+
+        // const lst = csv.parse(str, (err, lst) => {
+        //     for (let ii = 0; ii < lst.length; ++ii) {
+        //
+        //     }
+        // });
+
+        // fs.writeFileSync(crawler.options.xlsfilename, crawler.data);
     }
     else {
         console.log(str);
@@ -50,6 +95,9 @@ async function startJYMX2Crawler(code, beginday, endday) {
 
         let op = Object.assign({}, sinajymx2Options);
         op.uri = util.format('http://market.finance.sina.com.cn/downxls.php?date=%s&symbol=%s', curday, code);
+        op.code = code.substr(code.length - 6, 6);
+        op.curday = curday;
+        op.curyear = sd.format('YYYY');
         op.xlsfilename = code + '_' + curday + '.xls';
         // op.uri = util.format('http://quotes.sina.cn/hs/company/quotes/view/%s/?from=wap', code);
         //op.headlesschromename = hcname;
