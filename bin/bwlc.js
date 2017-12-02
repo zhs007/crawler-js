@@ -5,11 +5,8 @@ let moment = require('moment');
 let fs = require('fs');
 let { CrawlerMgr, CRAWLER, DATAANALYSIS, STORAGE, CRAWLERCACHE, getVal_CDPCallFrame, HeadlessChromeMgr } = require('crawlercore');
 let util = require('util');
-let { startAllStockToday2Crawler, startStockToday2Crawler_List } = require('../src/sinafinance/stocktoday');
-let { startStockListCrawler } = require('../src/sinafinance/xueqiustacklist');
-let { StockMgr } = require('../src/sinafinance/stockmgr');
-let { startAllJYMX2Crawler } = require('../src/sinafinance/sinajymx2');
-let { startAllStockPriceDayCrawler } = require('../src/sinafinance/stockpriceday');
+let { addPK10Crawler, addAllPK10Crawler } = require('../src/bwlc/pk10');
+let { LotteryMgr } = require('../src/bwlc/lotterymgr');
 
 const HEADLESSCHROME_NAME = 'hc';
 const HEADLESSCHROME_OPTION = {
@@ -26,8 +23,8 @@ const REDISID_CACHE = 'cache';
 CrawlerMgr.singleton.addRedisCfg(REDISID_CACHE, rediscfg);
 CrawlerMgr.singleton.setCrawlerCache(CRAWLERCACHE.REDIS, REDISID_CACHE);
 
-const mysqlcfg = JSON.parse(fs.readFileSync('./mysqlcfg_hfdb.json').toString());
-const MYSQLID_HFDB = 'hfdb';
+const mysqlcfg = JSON.parse(fs.readFileSync('./mysqlcfg_lottery.json').toString());
+const MYSQLID_HFDB = 'lottery';
 mysqlcfg.multipleStatements = true;
 
 CrawlerMgr.singleton.addMysqlCfg(MYSQLID_HFDB, mysqlcfg);
@@ -36,8 +33,8 @@ process.on('unhandledRejection', (reason, p) => {
     console.log('Unhandled Rejection at:', p, 'reason:', reason);
 });
 
-CrawlerMgr.singleton.processCrawlerNums = 1;
-CrawlerMgr.singleton.processDelayTime = 2;
+CrawlerMgr.singleton.processCrawlerNums = 8;
+CrawlerMgr.singleton.processDelayTime = 0.3;
 
 let curday = moment().format('YYYY-MM-DD');
 // let startday = moment().subtract(15, 'days').format('YYYY-MM-DD');
@@ -46,23 +43,9 @@ let curday = moment().format('YYYY-MM-DD');
 // let startday = '2009-01-01';
 
 CrawlerMgr.singleton.init().then(() => {
-    StockMgr.singleton.init(MYSQLID_HFDB).then(async () => {
+    LotteryMgr.singleton.init(MYSQLID_HFDB).then(async () => {
 
-        await HeadlessChromeMgr.singleton.getHeadlessChrome(HEADLESSCHROME_NAME);
-
-        // startStockListCrawler(1, HEADLESSCHROME_NAME);
-
-        await StockMgr.singleton.delStockPriceM(curday);
-        startAllStockToday2Crawler(HEADLESSCHROME_NAME);
-
-        // let lst = await StockMgr.singleton.getTodayStock(curday);
-        // let rlst = StockMgr.singleton.reselectStock(lst);
-        // startStockToday2Crawler_List(rlst, HEADLESSCHROME_NAME);
-
-        // await startJYMX2Crawler('sh600000', '2005-01-01', '2017-11-12', HEADLESSCHROME_NAME);
-
-        // await startAllJYMX2Crawler('2014-01-01', '2014-12-31');
-        // await startAllStockPriceDayCrawler('1988-01-01', '1989-12-31');
+        addAllPK10Crawler();
 
         CrawlerMgr.singleton.start(true, true, async () => {
             // await StockMgr.singleton.saveStockBase();
