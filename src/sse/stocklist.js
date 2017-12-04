@@ -14,7 +14,8 @@ async function func_analysis(crawler) {
         let obj = cheerio(element);
         let src = obj.attr('src');
         if (src != undefined && src.indexOf('ssesuggestdata.js') > 0) {
-            startStockListJSCrawler('http://www.sse.com.cn' + src);
+            // startStockListJSCrawler('http://www.sse.com.cn' + src);
+            startStockListJSCrawler(src);
         }
 
         return true;
